@@ -1,0 +1,37 @@
+{% extends 'tournament/base.html' %}
+
+{% block title %}Площадки{% endblock %}
+
+{% block content %}
+<h1 class="section-title">Список площадок</h1>
+
+<form method="get" style="margin-bottom: 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <input
+        type="text"
+        name="q"
+        value="{{ query }}"
+        placeholder="Поиск площадки..."
+        style="padding: 12px; width: 280px; border-radius: 12px; border: 1px solid #ccc;"
+    >
+    <button
+        type="submit"
+        style="padding: 12px 18px; border: none; border-radius: 12px; background: #2563eb; color: white; font-weight: bold; cursor: pointer;"
+    >
+        Найти
+    </button>
+</form>
+
+<div class="grid">
+    {% for court in courts %}
+        <div class="card">
+            <h2>{{ court.name }}</h2>
+            <p><strong>Адрес:</strong> {{ court.address }}</p>
+            <p><strong>Телефон ответственного:</strong> {{ court.contact_phone|default:"—" }}</p>
+        </div>
+    {% empty %}
+        <div class="card">
+            <p class="empty">Площадки не найдены.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

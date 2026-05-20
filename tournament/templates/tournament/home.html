@@ -1,0 +1,47 @@
+{% extends 'tournament/base.html' %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <span class="badge">Веб-платформа</span>
+    <h1>Система для ведения турниров по пляжному волейболу</h1>
+    <p>
+        Сайт позволяет хранить данные о турнирах, командах, игроках, матчах и партиях,
+        формировать турнирную таблицу и отображать сетку соревнований в удобном виде.
+    </p>
+</section>
+
+<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-bottom: 28px;">
+    <div class="card">
+        <h3>Игроки</h3>
+        <p class="muted">Просмотр списка участников и поиск игроков по имени и фамилии.</p>
+    </div>
+    <div class="card">
+        <h3>Турниры</h3>
+        <p class="muted">Просмотр всех турниров, их матчей, таблиц, сеток и новостей.</p>
+    </div>
+    <div class="card">
+        <h3>Площадки</h3>
+        <p class="muted">Информация о местах проведения матчей.</p>
+    </div>
+</div>
+
+<h2 class="section-title">Последние новости</h2>
+<div class="grid">
+    {% for item in latest_news %}
+        <div class="card">
+            <span class="badge">{{ item.created_at|date:"j E Y, H:i" }}</span>
+            <h3>{{ item.title }}</h3>
+            {% if item.tournament %}
+                <p><strong>Турнир:</strong> {{ item.tournament.name }}</p>
+            {% endif %}
+            <p>{{ item.content|truncatechars:220 }}</p>
+        </div>
+    {% empty %}
+        <div class="card">
+            <p class="empty">Новостей пока нет.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

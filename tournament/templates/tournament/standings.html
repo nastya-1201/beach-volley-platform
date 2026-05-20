@@ -1,0 +1,47 @@
+{% extends 'tournament/base.html' %}
+
+{% block title %}Турнирная таблица{% endblock %}
+
+{% block content %}
+<h1 class="section-title">Турнирная таблица</h1>
+
+{% if selected_tournament %}
+    <div class="card" style="margin-bottom: 24px;">
+        <h2>{{ selected_tournament.name }}</h2>
+        <p><strong>Даты:</strong> {{ selected_tournament.start_date }} — {{ selected_tournament.end_date }}</p>
+        <p><strong>Место:</strong> {{ selected_tournament.location }}</p>
+        <p><strong>Формат:</strong> {{ selected_tournament.get_format_type_display }}</p>
+    </div>
+{% endif %}
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Место</th>
+                <th>Пара</th>
+                <th>Сыграно</th>
+                <th>Победы</th>
+                <th>Поражения</th>
+                <th>Очки</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in table %}
+            <tr>
+                <td>{{ row.place }}</td>
+                <td>{{ row.pair }}</td>
+                <td>{{ row.played }}</td>
+                <td>{{ row.wins }}</td>
+                <td>{{ row.losses }}</td>
+                <td><strong>{{ row.points }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">Нет данных для таблицы.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'tournament/base.html' %}
+
+{% block title %}{{ player.first_name }} {{ player.last_name }}{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 24px;">
+    {% if player.photo %}
+        <img src="{{ player.photo.url }}" alt="{{ player.first_name }} {{ player.last_name }}" style="width: 260px; height: 260px; object-fit: cover; border-radius: 20px; margin-bottom: 20px;">
+    {% endif %}
+
+    <h1>{{ player.first_name }} {{ player.last_name }}</h1>
+    <p><strong>Возраст:</strong> {{ player.age|default:"—" }}</p>
+    <p><strong>Стаж в волейболе:</strong> {{ player.volleyball_experience|default:"—" }} лет</p>
+    <p><strong>Стаж в пляжном волейболе:</strong> {{ player.beach_experience|default:"—" }} лет</p>
+</div>
+
+<div class="card">
+    <h2>История участия в турнирах</h2>
+
+    {% for item in history %}
+        <div style="margin-bottom: 16px;">
+            <p>
+                <strong>Турнир:</strong>
+                <a class="link-title" href="/tournaments/{{ item.tournament.id }}/">
+                    {{ item.tournament.name }}
+                </a>
+            </p>
+            <p><strong>Пара:</strong> {{ item.pair }}</p>
+            <p><strong>Даты:</strong> {{ item.tournament.start_date|date:"j E Y" }} — {{ item.tournament.end_date|date:"j E Y" }}</p>
+            <p><strong>Место проведения:</strong> {{ item.tournament.location|default:"—" }}</p>
+        </div>
+    {% empty %}
+        <p>Игрок пока не участвовал в турнирах.</p>
+    {% endfor %}
+</div>
+{% endblock %}

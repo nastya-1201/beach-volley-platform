@@ -1,0 +1,1760 @@
+{% extends 'tournament/base.html' %}
+
+{% block title %}{{ tournament.name }}{% endblock %}
+
+{% block content %}
+<style>
+  /* ===== TOURNAMENT INFO CARD ===== */
+  .info-card {
+    background: rgba(255,255,255,0.93);
+    border-radius: 20px;
+    padding: 28px 32px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  }
+  .info-card h1 {
+    margin: 0 0 16px;
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+  }
+  .info-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+    margin-bottom: 18px;
+  }
+  .info-meta span {
+    font-size: 14px;
+    color: #475569;
+  }
+  .info-meta strong {
+    color: #1e293b;
+  }
+
+  /* ===== TABS ===== */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 22px;
+    background: rgba(255,255,255,0.70);
+    border-radius: 14px;
+    padding: 4px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    width: fit-content;
+  }
+  .tab-btn {
+    padding: 10px 24px;
+    border: none;
+    background: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+  .tab-btn.active {
+    background: #1e3a8a;
+    color: white;
+    box-shadow: 0 2px 10px rgba(30,58,138,0.25);
+  }
+  .tab-btn:hover:not(.active) {
+    background: rgba(30,58,138,0.08);
+    color: #1e3a8a;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ===== BRACKET CONTROLS ===== */
+  .bracket-controls {
+    background: rgba(255,255,255,0.93);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+  .ctrl-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .ctrl-group label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #64748b;
+  }
+  .ctrl-group select {
+    padding: 9px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    background: white;
+    cursor: pointer;
+    min-width: 190px;
+  }
+  .ctrl-group select:focus { outline: none; border-color: #2563eb; }
+
+  .btn-build {
+    padding: 10px 22px;
+    background: #1e3a8a;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.15s;
+  }
+  .btn-build:hover { background: #1e40af; transform: translateY(-1px); }
+
+  .btn-reset {
+    padding: 10px 18px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-reset:hover { background: #e2e8f0; }
+
+  /* ===== TEAMS INPUT ===== */
+  .teams-panel {
+    background: rgba(255,255,255,0.93);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+  .teams-panel h3 {
+    margin: 0 0 14px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .teams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .team-row {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .team-row label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+  }
+  .team-input {
+    padding: 9px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    transition: border-color 0.18s;
+    background: white;
+  }
+  .team-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+  }
+  .team-input::placeholder { color: #cbd5e1; font-weight: 400; }
+
+  .btn-apply {
+    padding: 10px 22px;
+    background: #0ea5e9;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.18s;
+  }
+  .btn-apply:hover { background: #0284c7; }
+
+  /* ===== BRACKET SVG AREA ===== */
+  .bracket-area {
+    background: rgba(255,255,255,0.93);
+    border-radius: 16px;
+    padding: 20px 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    overflow-x: auto;
+  }
+  .bracket-section-label {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #94a3b8;
+    margin-bottom: 14px;
+    margin-top: 24px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .bracket-section-label:first-child { margin-top: 0; }
+
+  /* ===== SVG BRACKET ===== */
+  .bracket-svg-wrap {
+    min-width: max-content;
+  }
+  svg.bracket-svg {
+    display: block;
+    overflow: visible;
+  }
+
+  /* Match boxes in SVG */
+  .m-box { cursor: pointer; }
+  .m-box rect.m-bg {
+    fill: #fff;
+    stroke: #cbd5e1;
+    stroke-width: 1.5;
+    rx: 8;
+  }
+  .m-box:hover rect.m-bg { stroke: #2563eb; }
+  .m-box.has-winner rect.m-bg { stroke: #10b981; }
+  .m-box.final-match rect.m-bg { stroke: #b45309; stroke-width: 2; }
+
+  .m-divider { stroke: #f1f5f9; stroke-width: 1; }
+  .m-team-name { font-family: inherit; font-size: 12px; font-weight: 600; fill: #334155; }
+  .m-team-name.tbd { fill: #94a3b8; font-weight: 400; font-style: italic; }
+  .m-team-name.winner { fill: #065f46; font-weight: 700; }
+  .m-team-name.loser { fill: #94a3b8; }
+  .m-score { font-family: inherit; font-size: 12px; font-weight: 800; fill: #1e3a8a; }
+  .m-score.winner { fill: #065f46; }
+  .m-num { font-family: inherit; font-size: 9px; font-weight: 700; fill: #94a3b8; }
+  .connector { stroke: #cbd5e1; stroke-width: 1.5; fill: none; }
+
+  /* Round headers */
+  .round-header { font-family: inherit; font-size: 11px; font-weight: 700; fill: #64748b; text-anchor: middle; }
+
+  /* Win/lose bg highlights */
+  .team-win-bg { fill: #d1fae5; }
+  .team-lose-bg { fill: #fef2f2; }
+
+  /* ===== SCORE MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: white;
+    border-radius: 18px;
+    padding: 28px;
+    width: 360px;
+    max-width: calc(100vw - 32px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    animation: mIn 0.18s ease;
+  }
+  @keyframes mIn {
+    from { opacity: 0; transform: scale(0.95) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .modal-box h3 {
+    margin: 0 0 20px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+    text-align: center;
+  }
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .score-row label {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .score-row input[type=number] {
+    width: 60px;
+    padding: 8px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: 800;
+    text-align: center;
+    color: #1e293b;
+  }
+  .score-row input[type=number]:focus { outline: none; border-color: #2563eb; }
+  .score-vs {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 2px 0 10px;
+  }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-actions button { flex: 1; padding: 11px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
+  .btn-cancel { background: #f1f5f9; color: #64748b; }
+  .btn-save { background: #1e3a8a; color: white; }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-bracket {
+    text-align: center;
+    padding: 48px 24px;
+    color: #94a3b8;
+  }
+  .empty-bracket .empty-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #64748b; }
+  .empty-bracket p { font-size: 13px; }
+
+  /* ===== MATCHES LIST ===== */
+  .match-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+  }
+  .match-row:last-child { border-bottom: none; }
+  .match-status {
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .status-planned { background: #f1f5f9; color: #64748b; }
+  .status-ongoing { background: #fef3c7; color: #92400e; }
+  .status-finished { background: #d1fae5; color: #065f46; }
+
+  @media (max-width: 700px) {
+    .tabs { flex-wrap: wrap; width: 100%; }
+    .tab-btn { flex: 1; text-align: center; font-size: 13px; padding: 9px 10px; }
+  }
+  @media print {
+  /* Скрываем всё, кроме сетки */
+  .editor-header,
+  .tabs,
+  .bracket-controls,
+  .teams-panel,
+  .info-card,
+  .modal-overlay,
+  nav,
+  header,
+  .nav,
+  footer {
+    display: none !important;
+  }
+
+  /* Убираем фон страницы и тени */
+  body {
+    background: white !important;
+  }
+
+  .bracket-area {
+    box-shadow: none !important;
+    background: white !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Чтобы сетка влезла в страницу */
+  .bracket-svg-wrap {
+    page-break-inside: avoid;
+  }
+
+  /* Печатаем альбомную ориентацию */
+  @page {
+    size: landscape;
+    margin: 1cm;
+  }
+
+  /* Заголовок турнира поверх сетки */
+  .tab-panel#tab-bracket::before {
+    content: "{{ tournament.name }}";
+    display: block;
+    font-size: 18pt;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 12px;
+    color: #000;
+  }
+  /* Ограничиваем ширину карточек на вкладках */
+.tab-panel .card {
+  background: rgba(255,255,255,0.93);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+.tab-panel h2 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* Матчи турнира: пустое состояние не должно занимать высоту */
+.tab-panel .match-row:last-child {
+  border-bottom: none;
+}
+  }
+ .mode-btn {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+}
+.mode-btn.active {
+  background: white;
+  color: #1e3a8a;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}   
+</style>
+<!-- SCORE MODAL -->
+<div class="modal-overlay" id="scoreModal">
+  <div class="modal-box">
+    <h3 id="modalTitle">Результат матча</h3>
+
+    <div style="display:flex;gap:6px;margin-bottom:14px;background:#f1f5f9;padding:4px;border-radius:10px;">
+      <button type="button" id="modeTotal" class="mode-btn active" onclick="switchMode('total')">Итог</button>
+      <button type="button" id="modeSets" class="mode-btn" onclick="switchMode('sets')">По партиям</button>
+    </div>
+
+    <div id="totalMode">
+      <div class="score-row">
+        <label id="mLabel1">Команда 1</label>
+        <input type="number" id="mScore1" min="0" max="99" value="0">
+      </div>
+      <div class="score-vs">vs</div>
+      <div class="score-row">
+        <label id="mLabel2">Команда 2</label>
+        <input type="number" id="mScore2" min="0" max="99" value="0">
+      </div>
+    </div>
+
+    <div id="setsMode" style="display:none;">
+      <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:10px 12px;align-items:center;">
+  <span style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Партия</span>
+  <span id="setLabel1" style="font-size:11px;font-weight:700;color:#334155;text-align:center;line-height:1.2;word-break:break-word;">К1</span>
+  <span id="setLabel2" style="font-size:11px;font-weight:700;color:#334155;text-align:center;line-height:1.2;word-break:break-word;">К2</span>
+
+  <span style="font-size:13px;font-weight:700;">1-й</span>
+  <input type="number" id="set1a" min="0" max="99" placeholder="0" style="width:100%;padding:6px;border:2px solid #e2e8f0;border-radius:6px;text-align:center;font-weight:700;box-sizing:border-box;">
+  <input type="number" id="set1b" min="0" max="99" placeholder="0" style="width:100%;padding:6px;border:2px solid #e2e8f0;border-radius:6px;text-align:center;font-weight:700;box-sizing:border-box;">
+
+  <span style="font-size:13px;font-weight:700;">2-й</span>
+  <input type="number" id="set2a" min="0" max="99" placeholder="0" style="width:100%;padding:6px;border:2px solid #e2e8f0;border-radius:6px;text-align:center;font-weight:700;box-sizing:border-box;">
+  <input type="number" id="set2b" min="0" max="99" placeholder="0" style="width:100%;padding:6px;border:2px solid #e2e8f0;border-radius:6px;text-align:center;font-weight:700;box-sizing:border-box;">
+
+  <span style="font-size:13px;font-weight:700;">3-й</span>
+  <input type="number" id="set3a" min="0" max="99" placeholder="—" style="width:100%;padding:6px;border:2px solid #e2e8f0;border-radius:6px;text-align:center;font-weight:700;box-sizing:border-box;">
+  <input type="number" id="set3b" min="0" max="99" placeholder="—" style="width:100%;padding:6px;border:2px solid #e2e8f0;border-radius:6px;text-align:center;font-weight:700;box-sizing:border-box;">
+</div>
+
+      <p style="font-size:11px;color:#94a3b8;margin:10px 0 0;">3-й сет — если нужен. Победитель определяется по количеству выигранных сетов.</p>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+      <button class="btn-save" onclick="saveScore()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOURNAMENT INFO -->
+<div class="info-card">
+  <h1>{{ tournament.name }}</h1>
+  <div class="info-meta">
+    <span><strong>Даты:</strong> {{ tournament.start_date|date:"j E Y" }} — {{ tournament.end_date|date:"j E Y" }}</span>
+    <span><strong>Место:</strong> {{ tournament.location|default:"—" }}</span>
+    <span><strong>Формат:</strong> {{ tournament.get_format_type_display }}</span>
+    {% if tournament.video_link %}
+    <span><strong>Видео:</strong> <a class="link-title" href="{{ tournament.video_link }}" target="_blank">Открыть</a></span>
+    {% endif %}
+    {% if tournament.photo_album_link %}
+    <span><strong>Фотоальбом:</strong> <a class="link-title" href="{{ tournament.photo_album_link }}" target="_blank">Открыть</a></span>
+    {% endif %}
+  </div>
+  <a href="/admin/" style="display:inline-block;padding:9px 18px;background:#1e3a8a;color:white;border-radius:9px;font-size:13px;font-weight:700;text-decoration:none;">Панель администратора</a>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('bracket')">Сетка турнира</button>
+  <button class="tab-btn" onclick="switchTab('matches')">Матчи</button>
+  {% if group_tables %}
+  <button class="tab-btn" onclick="switchTab('groups')">Группы</button>
+  {% endif %}
+  <button class="tab-btn" onclick="switchTab('news')">Новости</button>
+</div>
+
+<!-- TAB: BRACKET -->
+<div class="tab-panel active" id="tab-bracket">
+
+  <div class="bracket-controls">
+    <div class="ctrl-group">
+      <label>Система</label>
+      <select id="formatSelect">
+        <option value="single" {% if tournament.format_type == 'single_elim' %}selected{% endif %}>Олимпийская система</option>
+        <option value="double" {% if tournament.format_type == 'double_elim' %}selected{% endif %}>До двух поражений</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <label>Команд в сетке</label>
+      <select id="sizeSelect">
+        {% for v,l in size_choices %}
+        <option value="{{ v }}" {% if tournament.bracket_size == v %}selected{% endif %}>{{ l }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn-build" onclick="buildBracket()">Построить сетку</button>
+    <button class="btn-reset" onclick="resetBracket()">Сбросить</button>
+    <button class="btn-reset" onclick="printBracket()">Распечатать</button>
+  </div>
+
+
+  <div class="teams-panel" id="teamsPanel" style="display:none;">
+    <h3>Команды участники</h3>
+    <div class="teams-grid" id="teamsGrid"></div>
+    <button class="btn-apply" onclick="applyTeams()">Применить к сетке</button>
+  </div>
+
+
+  <div class="bracket-area" id="bracketArea">
+    <div class="empty-bracket">
+      <div class="empty-title">Сетка не построена</div>
+      <p>Выберите систему и количество команд, затем нажмите "Построить сетку"</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: MATCHES -->
+<div class="tab-panel" id="tab-matches">
+  <div class="card">
+    <h2 style="margin:0 0 16px;">Матчи турнира</h2>
+    {% for match in matches %}
+    <div class="match-row">
+      <span class="match-status status-{{ match.status }}">{{ match.get_status_display }}</span>
+      <span style="flex:1;">
+        <a class="link-title" href="/matches/{{ match.id }}/">{{ match.pair1|default:"—" }} — {{ match.pair2|default:"—" }}</a>
+      </span>
+      <span style="color:#94a3b8;font-size:12px;">{{ match.match_date|date:"j E" }}, {{ match.match_time|time:"H:i" }}</span>
+      {% if match.score %}<span style="font-weight:700;color:#1e3a8a;">{{ match.score }}</span>{% endif %}
+    </div>
+    {% empty %}
+    <p style="color:#94a3b8;">Матчи пока не добавлены.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- TAB: GROUPS -->
+{% if group_tables %}
+<div class="tab-panel" id="tab-groups">
+  {% for group_data in group_tables %}
+  <div class="card" style="margin-bottom:18px;">
+    <h2 style="margin:0 0 14px;">Группа {{ group_data.group.name }}</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Пара</th><th>И</th><th>В</th><th>П</th><th>Очки</th></tr>
+        </thead>
+        <tbody>
+          {% for row in group_data.table %}
+          <tr>
+            <td>{{ row.place }}</td>
+            <td>{{ row.pair }}</td>
+            <td>{{ row.played }}</td>
+            <td>{{ row.wins }}</td>
+            <td>{{ row.losses }}</td>
+            <td>{{ row.points }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" style="color:#94a3b8;">Нет данных</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- TAB: NEWS -->
+<div class="tab-panel" id="tab-news">
+  <div class="card">
+    <h2 style="margin:0 0 16px;">Новости турнира</h2>
+    {% for item in news_items %}
+    <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #f1f5f9;">
+      <p style="margin:0 0 4px;font-weight:700;color:#0f172a;">{{ item.title }}</p>
+      <p style="margin:0 0 6px;color:#475569;font-size:14px;">{{ item.content }}</p>
+      <p style="margin:0;color:#94a3b8;font-size:12px;">{{ item.created_at|date:"j E Y, H:i" }}</p>
+    </div>
+    {% empty %}
+    <p style="color:#94a3b8;">Новостей пока нет.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+// ===== TABS =====
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+const TOURNAMENT_ID = parseInt("{{ tournament.id }}");
+const SAVE_URL = `/tournaments/${TOURNAMENT_ID}/bracket/save/`;
+const LOAD_URL = `/tournaments/${TOURNAMENT_ID}/bracket/load/`;
+let S = { format:'single', size:8, teams:[], matches:[], counter:0 };
+let saveTimer = null;
+
+
+async function loadFromServer() {
+  try {
+    const resp = await fetch(LOAD_URL);
+    const json = await resp.json();
+    if (json.data && json.data.matches && json.data.matches.length) {
+      S = json.data;
+      document.getElementById('formatSelect').value = S.format;
+      document.getElementById('sizeSelect').value = S.size;
+      showTeamsPanel();
+      renderAll();
+    }
+  } catch (e) {
+    console.error('Ошибка загрузки сетки:', e);
+  }
+}
+
+function persist() {
+  // Сохраняем с задержкой 400мс, чтобы не слать запрос на каждый чих
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      await fetch(SAVE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(S),
+      });
+    } catch (e) {
+      console.error('Ошибка сохранения сетки:', e);
+    }
+  }, 400);
+}
+
+loadFromServer();
+
+function printBracket() {
+  window.print();
+}
+
+function resetBracket() {
+  if (!confirm('Сбросить сетку? Все результаты будут удалены.')) return;
+  S.matches = []; S.counter = 0; S.teams = [];
+    persist(); // Сохранит пустое состояние на сервер
+  document.getElementById('teamsPanel').style.display = 'none';
+  document.getElementById('bracketArea').innerHTML =
+    '<div class="empty-bracket"><div class="empty-title">Сетка не построена</div>' +
+    '<p>Выберите систему и количество команд, затем нажмите "Построить сетку"</p></div>';
+}
+
+// ===== BUILD =====
+function buildBracket() {
+  S.format = document.getElementById('formatSelect').value;
+  S.size = parseInt(document.getElementById('sizeSelect').value);
+  if (S.teams.length !== S.size) S.teams = Array(S.size).fill('');
+  S.matches = []; S.counter = 0;
+  generate();
+  showTeamsPanel();
+  renderAll();
+  persist();
+}
+
+function showTeamsPanel() {
+  document.getElementById('teamsPanel').style.display = 'block';
+  const g = document.getElementById('teamsGrid');
+  g.innerHTML = '';
+  for (let i = 0; i < S.size; i++) {
+    const d = document.createElement('div');
+    d.className = 'team-row';
+    d.innerHTML = `<label>Команда ${i+1}</label>
+      <input class="team-input" type="text" placeholder="Команда ${i+1}" data-i="${i}" value="${xe(S.teams[i]||'')}">`;
+    g.appendChild(d);
+  }
+}
+function xe(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function applyTeams() {
+  document.querySelectorAll('.team-input').forEach(inp => {
+    S.teams[+inp.dataset.i] = inp.value.trim();
+  });
+  S.matches = []; S.counter = 0;
+  generate();
+  renderAll();
+  persist();
+}
+
+// ===== CORE HELPERS =====
+function nextPow2(n) { let p = 1; while (p < n) p *= 2; return p; }
+function tN(i) { return S.teams[i] || null; } // 0-based index — пусто, если не введено
+
+
+function mkM(br, rn, pos, t1, t2) {
+  const m = {
+    id: ++S.counter, bracket: br, round: rn, pos,
+    team1: t1 || null, team2: t2 || null,
+    score1: null, score2: null, winner: null, loser: null,
+    wNext: null, wSlot: null, lNext: null, lSlot: null
+  };
+  S.matches.push(m);
+  return m;
+}
+function gm(id) { return S.matches.find(m => m.id === id) || null; }
+
+function link(from, to, slot, losers) {
+  // link from -> to match. slot=1 means team1, slot=2 means team2.
+  if (losers) { from.lNext = to.id; from.lSlot = slot; }
+  else        { from.wNext = to.id; from.wSlot = slot; }
+}
+
+// Resolve byes: if one team is null, the other auto-wins
+function resolveByes(ms) {
+  // ms.forEach(m => {
+  //   if (m.winner) return;
+  //   if (m.team1 && !m.team2) { m.winner = m.team1; m.loser = null; }
+  //   else if (m.team2 && !m.team1) { m.winner = m.team2; m.loser = null; }
+  // });
+}
+
+// ===== STANDARD SEEDING (for power-of-2) =====
+// Returns ordered list of 0-based team indices for a bracket of size p
+// slots[0] vs slots[1] = match 1, slots[2] vs slots[3] = match 2, etc.
+function seedOrder(n) {
+  const p = nextPow2(n);
+  let arr = [1, 2];
+  while (arr.length < p) {
+    const cur = arr.length * 2;
+    const nxt = [];
+    arr.forEach(x => { nxt.push(x); nxt.push(cur + 1 - x); });
+    arr = nxt;
+  }
+  return arr.map(s => s <= n ? s - 1 : null);
+}
+
+
+// ===== GENERATE =====
+function generate() {
+  if (S.format === 'single') genSE();
+  else genDE();
+}
+
+// ============================================================
+// SINGLE ELIMINATION
+// ============================================================
+function genSE() {
+  const n = S.size;
+
+  // Особая схема для 6 команд (по бумажной сетке)
+  if (n === 6) {
+    // Раунд 1: Команда1 vs Команда2, Команда3 vs Команда4
+    const m1 = mkM('W', 1, 1, tN(0), tN(1));
+    const m2 = mkM('W', 1, 2, tN(2), tN(3));
+    // Полуфинал: Победитель(1) vs Команда5, Победитель(2) vs Команда6
+    const m3 = mkM('W', 2, 1, null, tN(4));
+    const m4 = mkM('W', 2, 2, null, tN(5));
+    link(m1, m3, 1, false);
+    link(m2, m4, 1, false);
+    // Финал: Победитель(3) vs Победитель(4)
+    const m5 = mkM('W', 3, 1, null, null);
+    link(m3, m5, 1, false);
+    link(m4, m5, 2, false);
+    // За 3 место: Проигравший(3) vs Проигравший(4)
+    const tp = mkM('3P', 1, 1, null, null);
+    link(m3, tp, 1, true);
+    link(m4, tp, 2, true);
+    return;
+  }
+    // Особая схема для 10 команд
+  if (n === 10) {
+    // R1 (1/8): К3-К10, К4-К9, К5-К8, К6-К7
+    const m1 = mkM('W', 1, 1, tN(2), tN(9));
+    const m2 = mkM('W', 1, 2, tN(3), tN(8));
+    const m3 = mkM('W', 1, 3, tN(4), tN(7));
+    const m4 = mkM('W', 1, 4, tN(5), tN(6));
+    // R2 (1/4): К1-Поб(М1), К2-Поб(М2)
+    const m5 = mkM('W', 2, 1, tN(0), null);
+    const m6 = mkM('W', 2, 2, tN(1), null);
+    link(m1, m5, 2, false);
+    link(m2, m6, 2, false);
+    // R3 (полуфинал): Поб(М5)-Поб(М6), Поб(М3)-Поб(М4)
+    const m7 = mkM('W', 3, 1, null, null);
+    const m8 = mkM('W', 3, 2, null, null);
+    link(m5, m7, 1, false);
+    link(m6, m7, 2, false);
+    link(m3, m8, 1, false);
+    link(m4, m8, 2, false);
+    // Финал
+    const m9 = mkM('W', 4, 1, null, null);
+    link(m7, m9, 1, false);
+    link(m8, m9, 2, false);
+    // За 3 место
+    const tp = mkM('3P', 1, 1, null, null);
+    link(m7, tp, 1, true);
+    link(m8, tp, 2, true);
+    return;
+  }
+    // Особая схема для 12 команд
+  if (n === 12) {
+    // R1 (1/8): К5-К12, К6-К11, К7-К10, К8-К9
+    const m1 = mkM('W', 1, 1, tN(4), tN(11));
+    const m2 = mkM('W', 1, 2, tN(5), tN(10));
+    const m3 = mkM('W', 1, 3, tN(6), tN(9));
+    const m4 = mkM('W', 1, 4, tN(7), tN(8));
+    // R2 (1/4): Поб(М1)-К4, Поб(М2)-К1, Поб(М3)-К2, Поб(М4)-К3
+    const m5 = mkM('W', 2, 1, null, tN(3));
+    const m6 = mkM('W', 2, 2, null, tN(0));
+    const m7 = mkM('W', 2, 3, null, tN(1));
+    const m8 = mkM('W', 2, 4, null, tN(2));
+    link(m1, m5, 1, false);
+    link(m2, m6, 1, false);
+    link(m3, m7, 1, false);
+    link(m4, m8, 1, false);
+    // R3 (полуфинал)
+    const m9  = mkM('W', 3, 1, null, null);
+    const m10 = mkM('W', 3, 2, null, null);
+    link(m5, m9,  1, false);
+    link(m6, m9,  2, false);
+    link(m7, m10, 1, false);
+    link(m8, m10, 2, false);
+    // Финал
+    const m11 = mkM('W', 4, 1, null, null);
+    link(m9,  m11, 1, false);
+    link(m10, m11, 2, false);
+    // За 3 место
+    const tp = mkM('3P', 1, 1, null, null);
+    link(m9,  tp, 1, true);
+    link(m10, tp, 2, true);
+    return;
+  }
+  // Особая схема для 24 команд
+  if (n === 24) {
+    // R1 (1/16): К9-К24, К10-К23, К11-К22, К12-К21, К13-К20, К14-К19, К15-К18, К16-К17
+    const r1 = [
+      mkM('W', 1, 1, tN(8),  tN(23)),
+      mkM('W', 1, 2, tN(9),  tN(22)),
+      mkM('W', 1, 3, tN(10), tN(21)),
+      mkM('W', 1, 4, tN(11), tN(20)),
+      mkM('W', 1, 5, tN(12), tN(19)),
+      mkM('W', 1, 6, tN(13), tN(18)),
+      mkM('W', 1, 7, tN(14), tN(17)),
+      mkM('W', 1, 8, tN(15), tN(16)),
+    ];
+    // R2 (1/8): Поб(М1)-К8, Поб(М2)-К1, Поб(М3)-К5, Поб(М4)-К4,
+    //          Поб(М5)-К7, Поб(М6)-К3, Поб(М7)-К6, Поб(М8)-К2
+    const seedR2 = [7, 0, 4, 3, 6, 2, 5, 1]; // 0-based индексы К8,К1,К5,К4,К7,К3,К6,К2
+    const r2 = [];
+    for (let i = 0; i < 8; i++) {
+      const m = mkM('W', 2, i+1, null, tN(seedR2[i]));
+      link(r1[i], m, 1, false);
+      r2.push(m);
+    }
+    // R3 (1/4): пары соседних
+    const r3 = [];
+    for (let i = 0; i < 8; i += 2) {
+      const m = mkM('W', 3, i/2+1, null, null);
+      link(r2[i],   m, 1, false);
+      link(r2[i+1], m, 2, false);
+      r3.push(m);
+    }
+    // R4 (1/2)
+    const m21 = mkM('W', 4, 1, null, null);
+    const m22 = mkM('W', 4, 2, null, null);
+    link(r3[0], m21, 1, false);
+    link(r3[1], m21, 2, false);
+    link(r3[2], m22, 1, false);
+    link(r3[3], m22, 2, false);
+    // Финал
+    const fin = mkM('W', 5, 1, null, null);
+    link(m21, fin, 1, false);
+    link(m22, fin, 2, false);
+    // За 3 место
+    const tp = mkM('3P', 1, 1, null, null);
+    link(m21, tp, 1, true);
+    link(m22, tp, 2, true);
+    return;
+  }
+
+
+  // Стандартная сетка для всех остальных размеров
+  const slots = seedOrder(n);
+  const p = slots.length;
+
+  let prev = [];
+  for (let i = 0; i < p; i += 2) {
+    const a = slots[i], b = slots[i+1];
+    const m = mkM('W', 1, i/2+1,
+      a !== null ? tN(a) : null,
+      b !== null ? tN(b) : null);
+    prev.push(m);
+  }
+  resolveByes(prev);
+
+  let rn = 2;
+  while (prev.length > 1) {
+    const cur = [];
+    for (let i = 0; i < prev.length; i += 2) {
+      const a = prev[i], b = prev[i+1];
+      const m = mkM('W', rn, i/2+1, a.winner || null, b.winner || null);
+      link(a, m, 1, false); link(b, m, 2, false);
+      cur.push(m);
+    }
+    resolveByes(cur);
+    prev = cur; rn++;
+  }
+
+  const maxR = Math.max(...S.matches.map(m => m.round));
+  const semis = S.matches.filter(m => m.bracket === 'W' && m.round === maxR - 1);
+  if (semis.length >= 2) {
+    const tp = mkM('3P', 1, 1, null, null);
+    link(semis[0], tp, 1, true);
+    link(semis[1], tp, 2, true);
+  }
+}
+
+function genDE() {
+  const n = S.size;
+    // Особая схема для 6 команд (по таблице)
+  if (n === 6) {
+    // W bracket
+    const m1 = mkM('W', 1, 1, tN(2), tN(5));         // К3 vs К6
+    const m2 = mkM('W', 1, 2, tN(3), tN(4));         // К4 vs К5
+    const m3 = mkM('W', 2, 1, tN(0), null);          // К1 vs Поб(М1)
+    const m4 = mkM('W', 2, 2, tN(1), null);          // К2 vs Поб(М2)
+    const m7 = mkM('W', 3, 1, null, null);           // финал W: Поб(М3)-Поб(М4)
+    link(m1, m3, 2, false);
+    link(m2, m4, 2, false);
+    link(m3, m7, 1, false);
+    link(m4, m7, 2, false);
+
+    // L bracket
+    const m5 = mkM('L', 1, 1, null, null);           // Пр(М1)-Пр(М2)
+    const m6 = mkM('L', 2, 1, null, null);           // Пр(М3)-Пр(М4)
+    const m8 = mkM('L', 3, 1, null, null);           // Пр(М7)-Поб(М6)
+    const m9 = mkM('L', 4, 1, null, null);           // Поб(М8)-Поб(М5)
+    link(m1, m5, 1, true);
+    link(m2, m5, 2, true);
+    link(m3, m6, 1, true);
+    link(m4, m6, 2, true);
+    link(m7, m8, 1, true);
+    link(m6, m8, 2, false);
+    link(m8, m9, 1, false);
+    link(m5, m9, 2, false);
+
+    // Grand Final
+    const m10 = mkM('GF', 1, 1, null, null);
+    link(m7, m10, 1, false);
+    link(m9, m10, 2, false);
+
+
+    return;
+  }
+    // Особая схема для 8 команд
+  if (n === 8) {
+    // W bracket
+    const w1 = mkM('W', 1, 1, tN(0), tN(7));   // К1-К8
+    const w2 = mkM('W', 1, 2, tN(3), tN(4));   // К4-К5
+    const w3 = mkM('W', 1, 3, tN(1), tN(6));   // К2-К7
+    const w4 = mkM('W', 1, 4, tN(2), tN(5));   // К3-К6
+    const w5 = mkM('W', 2, 1, null, null);     // 1/2 W: W1-W2
+    const w6 = mkM('W', 2, 2, null, null);     // 1/2 W: W3-W4
+    const w7 = mkM('W', 3, 1, null, null);     // финал W
+    link(w1, w5, 1, false);
+    link(w2, w5, 2, false);
+    link(w3, w6, 1, false);
+    link(w4, w6, 2, false);
+    link(w5, w7, 1, false);
+    link(w6, w7, 2, false);
+
+    // L bracket
+    const l1 = mkM('L', 1, 1, null, null);   // L(W1)-L(W2)
+    const l2 = mkM('L', 1, 2, null, null);   // L(W3)-L(W4)
+    const l3 = mkM('L', 2, 1, null, null);   // L(W5) vs Поб(L1)
+    const l4 = mkM('L', 2, 2, null, null);   // L(W6) vs Поб(L2)
+    const l5 = mkM('L', 3, 1, null, null);   // 1/2 L: L3-L4
+    const l6 = mkM('L', 4, 1, null, null);   // финал L: L(W7) vs Поб(L5)
+
+    link(w1, l1, 1, true);
+    link(w2, l1, 2, true);
+    link(w3, l2, 1, true);
+    link(w4, l2, 2, true);
+    link(w5, l3, 1, true);
+    link(l1, l3, 2, false);
+    link(w6, l4, 1, true);
+    link(l2, l4, 2, false);
+    link(l3, l5, 1, false);
+    link(l4, l5, 2, false);
+    link(w7, l6, 1, true);   // проигравший W7 в финал L
+    link(l5, l6, 2, false);
+
+    // Гранд-финал
+    const gf = mkM('GF', 1, 1, null, null);
+    link(w7, gf, 1, false);
+    link(l6, gf, 2, false);
+
+    return;
+  }
+  // Особая схема для 10 команд
+  if (n === 10) {
+    // W bracket
+    const w1 = mkM('W', 1, 1, tN(2), tN(9));    // К3-К10
+    const w2 = mkM('W', 1, 2, tN(3), tN(8));    // К4-К9
+    const w3 = mkM('W', 1, 3, tN(4), tN(7));    // К5-К8
+    const w4 = mkM('W', 1, 4, tN(5), tN(6));    // К6-К7
+    const w5 = mkM('W', 2, 1, tN(0), null);     // К1-Поб(W1)
+    const w6 = mkM('W', 2, 2, tN(1), null);     // К2-Поб(W2)
+    const w7 = mkM('W', 3, 1, null, null);      // полуфинал верх
+    const w8 = mkM('W', 3, 2, null, null);      // полуфинал низ
+    const w9 = mkM('W', 4, 1, null, null);      // финал W
+    link(w1, w5, 2, false);
+    link(w2, w6, 2, false);
+    link(w5, w7, 1, false);
+    link(w6, w7, 2, false);
+    link(w3, w8, 1, false);
+    link(w4, w8, 2, false);
+    link(w7, w9, 1, false);
+    link(w8, w9, 2, false);
+
+    // L bracket
+    const l1 = mkM('L', 1, 1, null, null);  // Пр(W1)-Пр(W2)
+    const l2 = mkM('L', 1, 2, null, null);  // Пр(W3)-Пр(W4)
+    const l3 = mkM('L', 2, 1, null, null);  // Поб(L1)-Пр(W5)
+    const l4 = mkM('L', 2, 2, null, null);  // Поб(L2)-Пр(W6)
+    const l5 = mkM('L', 3, 1, null, null);  // Поб(L3)-Пр(W8)
+    const l6 = mkM('L', 3, 2, null, null);  // Поб(L4)-Пр(W7)
+    const l7 = mkM('L', 4, 1, null, null);  // Поб(L5)-Поб(L6)
+    const l8 = mkM('L', 5, 1, null, null);  // финал L: Поб(L7)-Пр(W9)
+
+    link(w1, l1, 1, true);
+    link(w2, l1, 2, true);
+    link(w3, l2, 1, true);
+    link(w4, l2, 2, true);
+    link(l1, l3, 1, false);
+    link(w5, l3, 2, true);
+    link(l2, l4, 1, false);
+    link(w6, l4, 2, true);
+    link(l3, l5, 1, false);
+    link(w8, l5, 2, true);
+    link(l4, l6, 1, false);
+    link(w7, l6, 2, true);
+    link(l5, l7, 1, false);
+    link(l6, l7, 2, false);
+    link(l7, l8, 1, false);
+    link(w9, l8, 2, true);
+
+    // Гранд-финал
+    const gf = mkM('GF', 1, 1, null, null);
+    link(w9, gf, 1, false);
+    link(l8, gf, 2, false);
+
+    return;
+  }
+  // Особая схема для 12 команд
+  if (n === 12) {
+    // W bracket
+    const w1  = mkM('W', 1, 1, tN(4),  tN(11));  // К5-К12
+    const w2  = mkM('W', 1, 2, tN(5),  tN(10));  // К6-К11
+    const w3  = mkM('W', 1, 3, tN(6),  tN(9));   // К7-К10
+    const w4  = mkM('W', 1, 4, tN(7),  tN(8));   // К8-К9
+    const w5  = mkM('W', 2, 1, tN(0), null);     // К1-Поб(W1)
+    const w6  = mkM('W', 2, 2, tN(1), null);     // К2-Поб(W2)
+    const w7  = mkM('W', 2, 3, tN(2), null);     // К3-Поб(W3)
+    const w8  = mkM('W', 2, 4, tN(3), null);     // К4-Поб(W4)
+    const w9  = mkM('W', 3, 1, null, null);      // полуфинал
+    const w10 = mkM('W', 3, 2, null, null);      // полуфинал
+    const w11 = mkM('W', 4, 1, null, null);      // финал W
+    link(w1, w5, 2, false);
+    link(w2, w6, 2, false);
+    link(w3, w7, 2, false);
+    link(w4, w8, 2, false);
+    link(w5, w9,  1, false);
+    link(w6, w9,  2, false);
+    link(w7, w10, 1, false);
+    link(w8, w10, 2, false);
+    link(w9,  w11, 1, false);
+    link(w10, w11, 2, false);
+
+    // L bracket
+    const l1  = mkM('L', 1, 1, null, null);  // L(W1)-L(W2)
+    const l2  = mkM('L', 1, 2, null, null);  // L(W3)-L(W4)
+    const l3  = mkM('L', 2, 1, null, null);  // L(W5)-L(W6)
+    const l4  = mkM('L', 2, 2, null, null);  // L(W7)-L(W8)
+    const l5  = mkM('L', 3, 1, null, null);  // Поб(L1)-Поб(L2)
+    const l6  = mkM('L', 3, 2, null, null);  // Поб(L3)-Поб(L4)
+    const l7  = mkM('L', 4, 1, null, null);  // Поб(L5)-L(W9)
+    const l8  = mkM('L', 4, 2, null, null);  // Поб(L6)-L(W10)
+    const l9  = mkM('L', 5, 1, null, null);  // Поб(L7)-Поб(L8)
+    const l10 = mkM('L', 6, 1, null, null);  // финал L: Поб(L9)-L(W11)
+
+    link(w1, l1, 1, true);
+    link(w2, l1, 2, true);
+    link(w3, l2, 1, true);
+    link(w4, l2, 2, true);
+    link(w5, l3, 1, true);
+    link(w6, l3, 2, true);
+    link(w7, l4, 1, true);
+    link(w8, l4, 2, true);
+    link(l1, l5, 1, false);
+    link(l2, l5, 2, false);
+    link(l3, l6, 1, false);
+    link(l4, l6, 2, false);
+    link(l5, l7, 1, false);
+    link(w9, l7, 2, true);
+    link(l6, l8, 1, false);
+    link(w10, l8, 2, true);
+    link(l7, l9, 1, false);
+    link(l8, l9, 2, false);
+    link(l9, l10, 1, false);
+    link(w11, l10, 2, true);
+
+    // Гранд-финал
+    const gf = mkM('GF', 1, 1, null, null);
+    link(w11, gf, 1, false);
+    link(l10, gf, 2, false);
+
+    return;
+  }
+    // Особая схема для 16 команд
+  if (n === 16) {
+    // Стандартный посев на 16
+    const seeds = [0, 15, 7, 8, 4, 11, 3, 12, 2, 13, 5, 10, 6, 9, 1, 14];
+
+    // W bracket R1 (1/8)
+    const w1 = mkM('W', 1, 1, tN(seeds[0]),  tN(seeds[1]));
+    const w2 = mkM('W', 1, 2, tN(seeds[2]),  tN(seeds[3]));
+    const w3 = mkM('W', 1, 3, tN(seeds[4]),  tN(seeds[5]));
+    const w4 = mkM('W', 1, 4, tN(seeds[6]),  tN(seeds[7]));
+    const w5 = mkM('W', 1, 5, tN(seeds[8]),  tN(seeds[9]));
+    const w6 = mkM('W', 1, 6, tN(seeds[10]), tN(seeds[11]));
+    const w7 = mkM('W', 1, 7, tN(seeds[12]), tN(seeds[13]));
+    const w8 = mkM('W', 1, 8, tN(seeds[14]), tN(seeds[15]));
+    // R2 (1/4)
+    const w9  = mkM('W', 2, 1, null, null);
+    const w10 = mkM('W', 2, 2, null, null);
+    const w11 = mkM('W', 2, 3, null, null);
+    const w12 = mkM('W', 2, 4, null, null);
+    link(w1, w9, 1, false); link(w2, w9, 2, false);
+    link(w3, w10, 1, false); link(w4, w10, 2, false);
+    link(w5, w11, 1, false); link(w6, w11, 2, false);
+    link(w7, w12, 1, false); link(w8, w12, 2, false);
+    // R3 (1/2)
+    const w13 = mkM('W', 3, 1, null, null);
+    const w14 = mkM('W', 3, 2, null, null);
+    link(w9, w13, 1, false); link(w10, w13, 2, false);
+    link(w11, w14, 1, false); link(w12, w14, 2, false);
+    // R4 (финал W)
+    const w15 = mkM('W', 4, 1, null, null);
+    link(w13, w15, 1, false); link(w14, w15, 2, false);
+
+    // L bracket
+    const l1 = mkM('L', 1, 1, null, null);
+    const l2 = mkM('L', 1, 2, null, null);
+    const l3 = mkM('L', 1, 3, null, null);
+    const l4 = mkM('L', 1, 4, null, null);
+    const l5 = mkM('L', 2, 1, null, null);
+    const l6 = mkM('L', 2, 2, null, null);
+    const l7 = mkM('L', 2, 3, null, null);
+    const l8 = mkM('L', 2, 4, null, null);
+    const l9  = mkM('L', 3, 1, null, null);
+    const l10 = mkM('L', 3, 2, null, null);
+    const l11 = mkM('L', 4, 1, null, null);
+    const l12 = mkM('L', 4, 2, null, null);
+    const l13 = mkM('L', 5, 1, null, null);
+    const l14 = mkM('L', 6, 1, null, null);
+
+    // Проигравшие W R1 → L R1
+    link(w1, l1, 1, true); link(w2, l1, 2, true);
+    link(w3, l2, 1, true); link(w4, l2, 2, true);
+    link(w5, l3, 1, true); link(w6, l3, 2, true);
+    link(w7, l4, 1, true); link(w8, l4, 2, true);
+    // L R1 победители + проигравшие W R2 → L R2
+    link(l1, l5, 1, false); link(w9,  l5, 2, true);
+    link(l2, l6, 1, false); link(w10, l6, 2, true);
+    link(l3, l7, 1, false); link(w11, l7, 2, true);
+    link(l4, l8, 1, false); link(w12, l8, 2, true);
+    // L R2 победители попарно → L R3
+    link(l5, l9,  1, false); link(l6, l9,  2, false);
+    link(l7, l10, 1, false); link(l8, l10, 2, false);
+    // L R3 победители + проигравшие W R3 → L R4
+    link(l9,  l11, 1, false); link(w13, l11, 2, true);
+    link(l10, l12, 1, false); link(w14, l12, 2, true);
+    // L R4 победители → L R5
+    link(l11, l13, 1, false); link(l12, l13, 2, false);
+    // L R5 победитель + проигравший W R4 → финал L
+    link(l13, l14, 1, false); link(w15, l14, 2, true);
+
+    // Гранд-финал
+    const gf = mkM('GF', 1, 1, null, null);
+    link(w15, gf, 1, false);
+    link(l14, gf, 2, false);
+
+    return;
+  }
+  // Особая схема для 24 команд
+  if (n === 24) {
+    // ============ W BRACKET ============
+    // R1 (предв.): К9-К24, К10-К23, К11-К22, К12-К21, К13-К20, К14-К19, К15-К18, К16-К17
+    const w1 = mkM('W', 1, 1, tN(8),  tN(23));
+    const w2 = mkM('W', 1, 2, tN(9),  tN(22));
+    const w3 = mkM('W', 1, 3, tN(10), tN(21));
+    const w4 = mkM('W', 1, 4, tN(11), tN(20));
+    const w5 = mkM('W', 1, 5, tN(12), tN(19));
+    const w6 = mkM('W', 1, 6, tN(13), tN(18));
+    const w7 = mkM('W', 1, 7, tN(14), tN(17));
+    const w8 = mkM('W', 1, 8, tN(15), tN(16));
+    const wR1 = [w1, w2, w3, w4, w5, w6, w7, w8];
+
+    // R2 (1/8): К1-Поб(W1), К8-Поб(W2), К5-Поб(W3), К4-Поб(W4),
+    //          К7-Поб(W5), К3-Поб(W6), К6-Поб(W7), К2-Поб(W8)
+    const seedR2 = [0, 7, 4, 3, 6, 2, 5, 1]; // 0-based индексы К1,К8,К5,К4,К7,К3,К6,К2
+    const wR2 = [];
+    for (let i = 0; i < 8; i++) {
+      const m = mkM('W', 2, i+1, tN(seedR2[i]), null);
+      link(wR1[i], m, 2, false);
+      wR2.push(m);
+    }
+
+    // R3 (1/4)
+    const wR3 = [];
+    for (let i = 0; i < 4; i++) {
+      const m = mkM('W', 3, i+1, null, null);
+      link(wR2[2*i],   m, 1, false);
+      link(wR2[2*i+1], m, 2, false);
+      wR3.push(m);
+    }
+
+    // R4 (1/2)
+    const w21 = mkM('W', 4, 1, null, null);
+    const w22 = mkM('W', 4, 2, null, null);
+    link(wR3[0], w21, 1, false); link(wR3[1], w21, 2, false);
+    link(wR3[2], w22, 1, false); link(wR3[3], w22, 2, false);
+
+    // R5 (финал W)
+    const w23 = mkM('W', 5, 1, null, null);
+    link(w21, w23, 1, false); link(w22, w23, 2, false);
+
+    // ============ L BRACKET ============
+    // R1 L: пары проигравших W R1
+    const lR1 = [];
+    for (let i = 0; i < 4; i++) {
+      const m = mkM('L', 1, i+1, null, null);
+      link(wR1[2*i],   m, 1, true);
+      link(wR1[2*i+1], m, 2, true);
+      lR1.push(m);
+    }
+
+    // R2 L: победители L R1 + проигравшие W R2 (по одному в каждый матч)
+    const lR2 = [];
+    for (let i = 0; i < 4; i++) {
+      const m = mkM('L', 2, i+1, null, null);
+      link(lR1[i],   m, 1, false);
+      link(wR2[i*2], m, 2, true);   // берём один проигравший W R2
+      lR2.push(m);
+    }
+
+    // R3 L: попарно победители L R2 + ещё проигравшие W R2 (вторые)
+    // Здесь нужно пристроить оставшиеся 4 проигравших W R2 (нечётные индексы)
+    const lR3 = [];
+    for (let i = 0; i < 4; i++) {
+      const m = mkM('L', 3, i+1, null, null);
+      link(lR2[i],       m, 1, false);
+      link(wR2[i*2+1],   m, 2, true);  // вторые проигравшие W R2
+      lR3.push(m);
+    }
+
+    // R4 L: попарно победители L R3
+    const lR4 = [];
+    for (let i = 0; i < 2; i++) {
+      const m = mkM('L', 4, i+1, null, null);
+      link(lR3[2*i],   m, 1, false);
+      link(lR3[2*i+1], m, 2, false);
+      lR4.push(m);
+    }
+
+    // R5 L: победители L R4 + проигравшие W R3
+    const l17 = mkM('L', 5, 1, null, null);
+    const l18 = mkM('L', 5, 2, null, null);
+    link(lR4[0], l17, 1, false); link(wR3[0], l17, 2, true);
+    link(lR4[1], l18, 1, false); link(wR3[1], l18, 2, true);
+
+    // R6 L: победители L R5 + остальные проигравшие W R3
+    const l19 = mkM('L', 6, 1, null, null);
+    const l20 = mkM('L', 6, 2, null, null);
+    link(l17, l19, 1, false); link(wR3[2], l19, 2, true);
+    link(l18, l20, 1, false); link(wR3[3], l20, 2, true);
+
+    // R7 L: попарно
+    const l21 = mkM('L', 7, 1, null, null);
+    link(l19, l21, 1, false); link(l20, l21, 2, false);
+
+    // R8 L: + проигравший W R4 (полуфинала W). Тут два полуфинала W21 и W22 — берём один
+    const l22 = mkM('L', 8, 1, null, null);
+    link(l21, l22, 1, false); link(w21, l22, 2, true);
+    // Проигравший W22 пристраиваем... добавим ещё один раунд
+    const l23 = mkM('L', 9, 1, null, null);
+    link(l22, l23, 1, false); link(w22, l23, 2, true);
+
+    // Финал L: победитель L R9 + проигравший W R5 (финала W)
+    const lFinal = mkM('L', 10, 1, null, null);
+    link(l23, lFinal, 1, false); link(w23, lFinal, 2, true);
+
+    // ============ ГРАНД-ФИНАЛ ============
+    const gf = mkM('GF', 1, 1, null, null);
+    link(w23, gf, 1, false);
+    link(lFinal, gf, 2, false);
+
+    return;
+  }
+  // Особая схема для 32 команд
+  if (n === 32) {
+    // Стандартный посев на 32
+    const seeds = [
+      0, 31, 15, 16, 7, 24, 8, 23,
+      3, 28, 12, 19, 4, 27, 11, 20,
+      1, 30, 14, 17, 6, 25, 9, 22,
+      2, 29, 13, 18, 5, 26, 10, 21
+    ];
+
+    // ============ W BRACKET ============
+    // R1 (1/16): 16 матчей
+    const wR1 = [];
+    for (let i = 0; i < 16; i++) {
+      wR1.push(mkM('W', 1, i+1, tN(seeds[2*i]), tN(seeds[2*i+1])));
+    }
+    // R2 (1/8): 8 матчей
+    const wR2 = [];
+    for (let i = 0; i < 8; i++) {
+      const m = mkM('W', 2, i+1, null, null);
+      link(wR1[2*i],   m, 1, false);
+      link(wR1[2*i+1], m, 2, false);
+      wR2.push(m);
+    }
+    // R3 (1/4): 4 матча
+    const wR3 = [];
+    for (let i = 0; i < 4; i++) {
+      const m = mkM('W', 3, i+1, null, null);
+      link(wR2[2*i],   m, 1, false);
+      link(wR2[2*i+1], m, 2, false);
+      wR3.push(m);
+    }
+    // R4 (1/2): 2 матча
+    const wR4 = [];
+    for (let i = 0; i < 2; i++) {
+      const m = mkM('W', 4, i+1, null, null);
+      link(wR3[2*i],   m, 1, false);
+      link(wR3[2*i+1], m, 2, false);
+      wR4.push(m);
+    }
+    // R5 (финал W)
+    const wFinal = mkM('W', 5, 1, null, null);
+    link(wR4[0], wFinal, 1, false);
+    link(wR4[1], wFinal, 2, false);
+
+    // ============ L BRACKET ============
+    // R1 L: 8 матчей — пары проигравших W R1
+    const lR1 = [];
+    for (let i = 0; i < 8; i++) {
+      const m = mkM('L', 1, i+1, null, null);
+      link(wR1[2*i],   m, 1, true);
+      link(wR1[2*i+1], m, 2, true);
+      lR1.push(m);
+    }
+    // R2 L: 8 матчей — победители L R1 + проигравшие W R2
+    const lR2 = [];
+    for (let i = 0; i < 8; i++) {
+      const m = mkM('L', 2, i+1, null, null);
+      link(lR1[i], m, 1, false);
+      link(wR2[i], m, 2, true);
+      lR2.push(m);
+    }
+    // R3 L: 4 матча — попарно
+    const lR3 = [];
+    for (let i = 0; i < 4; i++) {
+      const m = mkM('L', 3, i+1, null, null);
+      link(lR2[2*i],   m, 1, false);
+      link(lR2[2*i+1], m, 2, false);
+      lR3.push(m);
+    }
+    // R4 L: 4 матча — победители L R3 + проигравшие W R3
+    const lR4 = [];
+    for (let i = 0; i < 4; i++) {
+      const m = mkM('L', 4, i+1, null, null);
+      link(lR3[i], m, 1, false);
+      link(wR3[i], m, 2, true);
+      lR4.push(m);
+    }
+    // R5 L: 2 матча — попарно
+    const lR5 = [];
+    for (let i = 0; i < 2; i++) {
+      const m = mkM('L', 5, i+1, null, null);
+      link(lR4[2*i],   m, 1, false);
+      link(lR4[2*i+1], m, 2, false);
+      lR5.push(m);
+    }
+    // R6 L: 2 матча — победители L R5 + проигравшие W R4
+    const lR6 = [];
+    for (let i = 0; i < 2; i++) {
+      const m = mkM('L', 6, i+1, null, null);
+      link(lR5[i], m, 1, false);
+      link(wR4[i], m, 2, true);
+      lR6.push(m);
+    }
+    // R7 L: 1 матч — попарно
+    const lR7 = mkM('L', 7, 1, null, null);
+    link(lR6[0], lR7, 1, false);
+    link(lR6[1], lR7, 2, false);
+
+    // R8 L (финал L): победитель L R7 + проигравший финала W
+    const lFinal = mkM('L', 8, 1, null, null);
+    link(lR7,    lFinal, 1, false);
+    link(wFinal, lFinal, 2, true);
+
+    // ============ ГРАНД-ФИНАЛ ============
+    const gf = mkM('GF', 1, 1, null, null);
+    link(wFinal, gf, 1, false);
+    link(lFinal, gf, 2, false);
+
+    return;
+  }
+}
+
+function propagateAll() {
+  // Сохраняем введённые счета по id матча
+  const savedScores = {};
+  S.matches.forEach(m => {
+    if (m.score1 !== null && m.score2 !== null) {
+      savedScores[m.id] = { s1: m.score1, s2: m.score2 };
+    }
+  });
+
+  // Сохраняем изначально заданные команды (те, что приходят НЕ через link)
+  // Это команды, которые задавались при mkM. Определим их так:
+  // если ни один другой матч не указывает на этот через wNext/lNext с данным слотом —
+  // значит команда в этом слоте была задана изначально.
+  function isSlotFromLink(matchId, slot) {
+    return S.matches.some(x =>
+      (x.wNext === matchId && x.wSlot === slot) ||
+      (x.lNext === matchId && x.lSlot === slot)
+    );
+  }
+
+  const initialTeams = {};
+  S.matches.forEach(m => {
+    initialTeams[m.id] = {
+      team1: isSlotFromLink(m.id, 1) ? null : m.team1,
+      team2: isSlotFromLink(m.id, 2) ? null : m.team2,
+    };
+  });
+
+  // Сбрасываем матчи: победителей у всех, команды только в тех слотах,
+  // которые заполняются ссылками от других матчей
+  S.matches.forEach(m => {
+    m.winner = null;
+    m.loser = null;
+    m.score1 = null;
+    m.score2 = null;
+    if (isSlotFromLink(m.id, 1)) m.team1 = null;
+    if (isSlotFromLink(m.id, 2)) m.team2 = null;
+  });
+
+  // Идём по матчам в порядке id, восстанавливаем счёт и продвигаем
+  [...S.matches].sort((a, b) => a.id - b.id).forEach(m => {
+    const saved = savedScores[m.id];
+    if (saved && m.team1 && m.team2) {
+      m.score1 = saved.s1;
+      m.score2 = saved.s2;
+      if      (saved.s1 > saved.s2) { m.winner = m.team1; m.loser = m.team2; }
+      else if (saved.s2 > saved.s1) { m.winner = m.team2; m.loser = m.team1; }
+    }
+
+    if (m.winner && m.wNext) {
+      const nx = gm(m.wNext);
+      if (nx) {
+        if (m.wSlot === 1) nx.team1 = m.winner;
+        else               nx.team2 = m.winner;
+      }
+    }
+    if (m.loser && m.lNext) {
+      const nx = gm(m.lNext);
+      if (nx) {
+        if (m.lSlot === 1) nx.team1 = m.loser;
+        else               nx.team2 = m.loser;
+      }
+    }
+  });
+}
+
+
+
+// ===== RENDER =====
+const MW=184, MH=54, RGAP=52, MGAP=16, RPAD=20, YOFF=34;
+
+function roundLabel(br, rn, total) {
+  if (br === 'GF') return 'Гранд-финал';
+  if (br === '3P') return 'За 3-е место';
+  if (br === 'W') {
+    const d = total - rn;
+    if (d === 0) return S.format === 'double' ? 'Финал W' : 'Финал';
+    if (d === 1) return 'Полуфинал';
+    if (d === 2) return '1/4 финала';
+    if (d === 3) return '1/8 финала';
+    if (d === 4) return '1/16 финала';
+    return `Раунд ${rn}`;
+  }
+  if (br === 'L') return rn === total ? 'Финал L' : `LB Раунд ${rn}`;
+  return `Раунд ${rn}`;
+}
+
+function renderAll() {
+  const area = document.getElementById('bracketArea');
+  area.innerHTML = '';
+  const secs = S.format === 'single'
+    ? [['W','Основная сетка'],['3P','Матч за 3-е место']]
+    : [['W','Сетка победителей'],['L','Сетка проигравших'],['GF','Гранд-финал']];
+  secs.forEach(([key, label]) => {
+    const ms = S.matches.filter(m => m.bracket === key && m.id);
+    if (!ms.length) return;
+    const lbl = document.createElement('div');
+    lbl.className = 'bracket-section-label'; lbl.textContent = label;
+    area.appendChild(lbl);
+    const wrap = document.createElement('div');
+    wrap.className = 'bracket-svg-wrap';
+    wrap.appendChild(makeSVG(key, ms));
+    area.appendChild(wrap);
+  });
+}
+
+function makeSVG(bracket, matches) {
+  const byR = {};
+  matches.forEach(m => { (byR[m.round] = byR[m.round] || []).push(m); });
+  const rounds = Object.keys(byR).map(Number).sort((a,b) => a-b);
+  const total = rounds.length;
+  const maxCnt = Math.max(...rounds.map(r => byR[r].length));
+  const totalH = maxCnt*(MH+MGAP) - MGAP;
+
+  const rowY = {};
+  rounds.forEach(r => {
+    const cnt = byR[r].length, used = cnt*(MH+MGAP) - MGAP;
+    const start = (totalH - used) / 2;
+    [...byR[r]].sort((a,b) => a.pos-b.pos).forEach((m,i) => { rowY[m.id] = start + i*(MH+MGAP); });
+  });
+
+  const svgW = rounds.length*(MW+RGAP) - RGAP + RPAD*2;
+  const svgH = totalH + YOFF + RPAD;
+
+  const svg = se('svg');
+  svg.setAttribute('class','bracket-svg');
+  svg.setAttribute('width', svgW); svg.setAttribute('height', svgH);
+
+  // Connectors
+  rounds.forEach((r, ri) => {
+    byR[r].forEach(m => {
+      if (!m.wNext) return;
+      const target = gm(m.wNext);
+      if (!target || !target.id || rowY[target.id] == null) return;
+      const ri2 = rounds.indexOf(target.round);
+      if (ri2 < 0) return;
+      const x1 = RPAD + ri*(MW+RGAP) + MW, y1 = YOFF + rowY[m.id] + MH/2;
+      const x2 = RPAD + ri2*(MW+RGAP),     y2 = YOFF + rowY[target.id] + MH/2;
+      const mid = (x1+x2)/2;
+      const path = se('path'); path.setAttribute('class','connector');
+      path.setAttribute('d', `M${x1},${y1} H${mid} V${y2} H${x2}`);
+      svg.appendChild(path);
+    });
+  });
+
+  // Headers + boxes
+  rounds.forEach((r, ri) => {
+    const cx = RPAD + ri*(MW+RGAP) + MW/2;
+    const h = se('text'); h.setAttribute('class','round-header');
+    h.setAttribute('x', cx); h.setAttribute('y', 16);
+    h.textContent = roundLabel(bracket, r, total);
+    svg.appendChild(h);
+    [...byR[r]].sort((a,b) => a.pos-b.pos).forEach(m => {
+      svg.appendChild(mBox(m, RPAD + ri*(MW+RGAP), YOFF + rowY[m.id], bracket));
+    });
+  });
+  return svg;
+}
+
+function se(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
+
+function mBox(m, x, y, bracket) {
+  const g = se('g');
+  g.setAttribute('class', 'm-box' + (m.winner?' has-winner':'') + (bracket==='GF'?' final-match':''));
+  g.addEventListener('click', () => openModal(m.id));
+  const half = MH/2;
+  const t1w = !!m.winner && m.winner === m.team1 && !!m.team1;
+  const t1l = !!m.winner && m.winner !== m.team1 && !!m.team1;
+  const t2w = !!m.winner && m.winner === m.team2 && !!m.team2;
+  const t2l = !!m.winner && m.winner !== m.team2 && !!m.team2;
+
+  const bg = se('rect'); bg.setAttribute('class','m-bg');
+  bg.setAttribute('x',x); bg.setAttribute('y',y);
+  bg.setAttribute('width',MW); bg.setAttribute('height',MH); bg.setAttribute('rx',7);
+  g.appendChild(bg);
+
+  function hbg(cls, yy) {
+    const r = se('rect'); r.setAttribute('class', cls);
+    r.setAttribute('x', x+1.5); r.setAttribute('y', yy);
+    r.setAttribute('width', MW-3); r.setAttribute('height', half-1); r.setAttribute('rx', 6);
+    g.appendChild(r);
+  }
+  if (t1w) hbg('team-win-bg',  y+1);
+  if (t1l) hbg('team-lose-bg', y+1);
+  if (t2w) hbg('team-win-bg',  y+half);
+  if (t2l) hbg('team-lose-bg', y+half);
+
+  const dv = se('line'); dv.setAttribute('class','m-divider');
+  dv.setAttribute('x1',x); dv.setAttribute('y1',y+half);
+  dv.setAttribute('x2',x+MW); dv.setAttribute('y2',y+half); g.appendChild(dv);
+
+  [[m.team1,m.score1,t1w,t1l,y+half/2+5],[m.team2,m.score2,t2w,t2l,y+half+half/2+5]].forEach(([team,score,win,lose,ty]) => {
+    const cls = 'm-team-name' + (win?' winner':lose?' loser':!team?' tbd':'');
+    const t = se('text'); t.setAttribute('class', cls);
+    t.setAttribute('x', x+8); t.setAttribute('y', ty);
+    t.textContent = trunc(team||'', 20); g.appendChild(t);
+    if (score !== null && score !== undefined) {
+      const st = se('text'); st.setAttribute('class','m-score'+(win?' winner':''));
+      st.setAttribute('x', x+MW-7); st.setAttribute('y', ty);
+      st.setAttribute('text-anchor','end'); st.textContent = score; g.appendChild(st);
+    }
+  });
+  return g;
+}
+
+function trunc(s, max) { return s.length > max ? s.slice(0, max-1)+'…' : s; }
+
+// ===== MODAL =====
+let activeId = null;
+let modalMode = 'total';
+
+function openModal(id) {
+  const m = gm(id); if (!m) return; activeId = id;
+  document.getElementById('modalTitle').textContent = 'Результат матча';
+  document.getElementById('mLabel1').textContent = m.team1 || '(ожидается)';
+  document.getElementById('mLabel2').textContent = m.team2 || '(ожидается)';
+  document.getElementById('setLabel1').textContent = m.team1 || 'К1';
+  document.getElementById('setLabel2').textContent = m.team2 || 'К2';
+  document.getElementById('mScore1').value = m.score1 ?? 0;
+  document.getElementById('mScore2').value = m.score2 ?? 0;
+
+  // Заполняем сеты, если они есть в матче
+  const sets = m.sets || [];
+  document.getElementById('set1a').value = sets[0]?.a ?? '';
+  document.getElementById('set1b').value = sets[0]?.b ?? '';
+  document.getElementById('set2a').value = sets[1]?.a ?? '';
+  document.getElementById('set2b').value = sets[1]?.b ?? '';
+  document.getElementById('set3a').value = sets[2]?.a ?? '';
+  document.getElementById('set3b').value = sets[2]?.b ?? '';
+
+  switchMode(sets.length > 0 ? 'sets' : 'total');
+  document.getElementById('scoreModal').classList.add('open');
+  document.getElementById('mScore1').select();
+}
+
+function switchMode(mode) {
+  modalMode = mode;
+  document.getElementById('modeTotal').classList.toggle('active', mode === 'total');
+  document.getElementById('modeSets').classList.toggle('active', mode === 'sets');
+  document.getElementById('totalMode').style.display = mode === 'total' ? 'block' : 'none';
+  document.getElementById('setsMode').style.display  = mode === 'sets'  ? 'block' : 'none';
+}
+
+function closeModal() { document.getElementById('scoreModal').classList.remove('open'); activeId = null; }
+
+function saveScore() {
+  if (!activeId) return;
+  const m = gm(activeId);
+  let s1, s2;
+
+  if (modalMode === 'sets') {
+    // Читаем сеты, считаем кто сколько партий выиграл
+    const sets = [];
+    for (let i = 1; i <= 3; i++) {
+      const a = document.getElementById('set' + i + 'a').value;
+      const b = document.getElementById('set' + i + 'b').value;
+      if (a !== '' && b !== '') {
+        sets.push({ a: parseInt(a), b: parseInt(b) });
+      }
+    }
+    m.sets = sets;
+    s1 = sets.filter(s => s.a > s.b).length;
+    s2 = sets.filter(s => s.b > s.a).length;
+  } else {
+    s1 = parseInt(document.getElementById('mScore1').value) || 0;
+    s2 = parseInt(document.getElementById('mScore2').value) || 0;
+    m.sets = []; // сбрасываем партии при ручном вводе итога
+  }
+
+  m.score1 = s1; m.score2 = s2;
+  if      (s1 > s2) { m.winner = m.team1; m.loser = m.team2; }
+  else if (s2 > s1) { m.winner = m.team2; m.loser = m.team1; }
+  else              { m.winner = null;    m.loser = null; }
+
+  propagateAll();
+
+
+  propagateAll();
+  if (S.format === 'double' && m.bracket === 'GF' && m.round === 1) {
+    const wFinal = S.matches.find(x => x.bracket === 'W' && x.wNext === m.id);
+    const lFinal = S.matches.find(x => x.bracket === 'L' && x.wNext === m.id);
+    const lTeamInGF = lFinal ? lFinal.winner : null;
+    S.matches = S.matches.filter(x => !(x.bracket === 'GF' && x.round === 2));
+    if (m.winner && lTeamInGF && m.winner === lTeamInGF) {
+      const reset = mkM('GF', 2, 1, m.team1, m.team2);
+    }
+  }
+
+  closeModal(); persist(); renderAll();
+}
+
+document.getElementById('scoreModal').addEventListener('click', e => { if (e.target.id==='scoreModal') closeModal(); });
+document.getElementById('mScore1').addEventListener('keydown', e => { if (e.key==='Enter') saveScore(); });
+document.getElementById('mScore2').addEventListener('keydown', e => { if (e.key==='Enter') saveScore(); });
+</script>
+{% endblock %}

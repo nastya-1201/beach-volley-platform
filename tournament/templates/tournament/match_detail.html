@@ -1,0 +1,36 @@
+{% extends 'tournament/base.html' %}
+
+{% block title %}Матч{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 24px;">
+    <h1>{{ match.pair1 }} — {{ match.pair2 }}</h1>
+    <p><strong>Площадка:</strong> {{ match.court }}</p>
+    <p><strong>Турнир:</strong> {{ match.tournament }}</p>
+    <p><strong>Стадия:</strong> {{ match.get_bracket_stage_display|default:"—" }}</p>
+    <p><strong>Дата:</strong> {{ match.match_date|date:"j E Y" }}</p>
+    <p><strong>Время:</strong> {{ match.match_time|time:"H:i" }}</p>
+    <p><strong>Статус:</strong> {{ match.get_status_display }}</p>
+    <p><strong>Общий счёт:</strong> {{ match.score|default:"—" }}</p>
+    <p><strong>Победитель:</strong> {{ match.winner|default:"—" }}</p>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+    <h2>Состав матча</h2>
+    <p><strong>Пара 1:</strong> {{ match.pair1.player1.first_name }} {{ match.pair1.player1.last_name }} / {{ match.pair1.player2.first_name }} {{ match.pair1.player2.last_name }}</p>
+    <p><strong>Пара 2:</strong> {{ match.pair2.player1.first_name }} {{ match.pair2.player1.last_name }} / {{ match.pair2.player2.first_name }} {{ match.pair2.player2.last_name }}</p>
+</div>
+
+<div class="card">
+    <h2>Партии матча</h2>
+
+    {% for set in sets %}
+        <p>
+            <strong>Партия {{ set.set_number }}:</strong>
+            {{ match.pair1 }} {{ set.pair1_points }} — {{ set.pair2_points }} {{ match.pair2 }}
+        </p>
+    {% empty %}
+        <p>Партии для этого матча пока не добавлены.</p>
+    {% endfor %}
+</div>
+{% endblock %}
