@@ -32,7 +32,6 @@
     color: #1e293b;
   }
 
-  /* ===== TABS ===== */
   .tabs {
     display: flex;
     gap: 0;
@@ -130,7 +129,6 @@
   }
   .btn-reset:hover { background: #e2e8f0; }
 
-  /* ===== TEAMS INPUT ===== */
   .teams-panel {
     background: rgba(255,255,255,0.93);
     border-radius: 16px;
@@ -192,7 +190,6 @@
   }
   .btn-apply:hover { background: #0284c7; }
 
-  /* ===== BRACKET SVG AREA ===== */
   .bracket-area {
     background: rgba(255,255,255,0.93);
     border-radius: 16px;
@@ -213,7 +210,6 @@
   }
   .bracket-section-label:first-child { margin-top: 0; }
 
-  /* ===== SVG BRACKET ===== */
   .bracket-svg-wrap {
     min-width: max-content;
   }
@@ -222,7 +218,6 @@
     overflow: visible;
   }
 
-  /* Match boxes in SVG */
   .m-box { cursor: pointer; }
   .m-box rect.m-bg {
     fill: #fff;
@@ -244,14 +239,11 @@
   .m-num { font-family: inherit; font-size: 9px; font-weight: 700; fill: #94a3b8; }
   .connector { stroke: #cbd5e1; stroke-width: 1.5; fill: none; }
 
-  /* Round headers */
   .round-header { font-family: inherit; font-size: 11px; font-weight: 700; fill: #64748b; text-anchor: middle; }
 
-  /* Win/lose bg highlights */
   .team-win-bg { fill: #d1fae5; }
   .team-lose-bg { fill: #fef2f2; }
 
-  /* ===== SCORE MODAL ===== */
   .modal-overlay {
     display: none;
     position: fixed;
@@ -323,7 +315,6 @@
   .btn-cancel { background: #f1f5f9; color: #64748b; }
   .btn-save { background: #1e3a8a; color: white; }
 
-  /* ===== EMPTY STATE ===== */
   .empty-bracket {
     text-align: center;
     padding: 48px 24px;
@@ -332,7 +323,6 @@
   .empty-bracket .empty-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #64748b; }
   .empty-bracket p { font-size: 13px; }
 
-  /* ===== MATCHES LIST ===== */
   .match-row {
     display: flex;
     align-items: center;
@@ -358,7 +348,6 @@
     .tab-btn { flex: 1; text-align: center; font-size: 13px; padding: 9px 10px; }
   }
   @media print {
-  /* Скрываем всё, кроме сетки */
   .editor-header,
   .tabs,
   .bracket-controls,
@@ -372,7 +361,6 @@
     display: none !important;
   }
 
-  /* Убираем фон страницы и тени */
   body {
     background: white !important;
   }
@@ -384,18 +372,15 @@
     overflow: visible !important;
   }
 
-  /* Чтобы сетка влезла в страницу */
   .bracket-svg-wrap {
     page-break-inside: avoid;
   }
 
-  /* Печатаем альбомную ориентацию */
   @page {
     size: landscape;
     margin: 1cm;
   }
 
-  /* Заголовок турнира поверх сетки */
   .tab-panel#tab-bracket::before {
     content: "{{ tournament.name }}";
     display: block;
@@ -405,7 +390,6 @@
     margin-bottom: 12px;
     color: #000;
   }
-  /* Ограничиваем ширину карточек на вкладках */
 .tab-panel .card {
   background: rgba(255,255,255,0.93);
   border-radius: 16px;
@@ -421,7 +405,6 @@
   color: #0f172a;
 }
 
-/* Матчи турнира: пустое состояние не должно занимать высоту */
 .tab-panel .match-row:last-child {
   border-bottom: none;
 }
@@ -443,7 +426,6 @@
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }   
 </style>
-<!-- SCORE MODAL -->
 <div class="modal-overlay" id="scoreModal">
   <div class="modal-box">
     <h3 id="modalTitle">Результат матча</h3>
@@ -494,7 +476,6 @@
   </div>
 </div>
 
-<!-- TOURNAMENT INFO -->
 <div class="info-card">
   <h1>{{ tournament.name }}</h1>
   <div class="info-meta">
@@ -511,7 +492,6 @@
   <a href="/admin/" style="display:inline-block;padding:9px 18px;background:#1e3a8a;color:white;border-radius:9px;font-size:13px;font-weight:700;text-decoration:none;">Панель администратора</a>
 </div>
 
-<!-- TABS -->
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('bracket')">Сетка турнира</button>
   <button class="tab-btn" onclick="switchTab('matches')">Матчи</button>
@@ -521,7 +501,6 @@
   <button class="tab-btn" onclick="switchTab('news')">Новости</button>
 </div>
 
-<!-- TAB: BRACKET -->
 <div class="tab-panel active" id="tab-bracket">
 
   <div class="bracket-controls">
@@ -561,7 +540,6 @@
   </div>
 </div>
 
-<!-- TAB: MATCHES -->
 <div class="tab-panel" id="tab-matches">
   <div class="card">
     <h2 style="margin:0 0 16px;">Матчи турнира</h2>
@@ -580,7 +558,6 @@
   </div>
 </div>
 
-<!-- TAB: GROUPS -->
 {% if group_tables %}
 <div class="tab-panel" id="tab-groups">
   {% for group_data in group_tables %}
@@ -612,7 +589,6 @@
 </div>
 {% endif %}
 
-<!-- TAB: NEWS -->
 <div class="tab-panel" id="tab-news">
   <div class="card">
     <h2 style="margin:0 0 16px;">Новости турнира</h2>
@@ -629,7 +605,6 @@
 </div>
 
 <script>
-// ===== TABS =====
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -661,7 +636,6 @@ async function loadFromServer() {
 }
 
 function persist() {
-  // Сохраняем с задержкой 400мс, чтобы не слать запрос на каждый чих
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     try {
@@ -692,7 +666,6 @@ function resetBracket() {
     '<p>Выберите систему и количество команд, затем нажмите "Построить сетку"</p></div>';
 }
 
-// ===== BUILD =====
 function buildBracket() {
   S.format = document.getElementById('formatSelect').value;
   S.size = parseInt(document.getElementById('sizeSelect').value);
@@ -728,9 +701,8 @@ function applyTeams() {
   persist();
 }
 
-// ===== CORE HELPERS =====
 function nextPow2(n) { let p = 1; while (p < n) p *= 2; return p; }
-function tN(i) { return S.teams[i] || null; } // 0-based index — пусто, если не введено
+function tN(i) { return S.teams[i] || null; } 
 
 
 function mkM(br, rn, pos, t1, t2) {
@@ -751,18 +723,9 @@ function link(from, to, slot, losers) {
   else        { from.wNext = to.id; from.wSlot = slot; }
 }
 
-// Resolve byes: if one team is null, the other auto-wins
 function resolveByes(ms) {
-  // ms.forEach(m => {
-  //   if (m.winner) return;
-  //   if (m.team1 && !m.team2) { m.winner = m.team1; m.loser = null; }
-  //   else if (m.team2 && !m.team1) { m.winner = m.team2; m.loser = null; }
-  // });
 }
 
-// ===== STANDARD SEEDING (for power-of-2) =====
-// Returns ordered list of 0-based team indices for a bracket of size p
-// slots[0] vs slots[1] = match 1, slots[2] vs slots[3] = match 2, etc.
 function seedOrder(n) {
   const p = nextPow2(n);
   let arr = [1, 2];
@@ -776,75 +739,57 @@ function seedOrder(n) {
 }
 
 
-// ===== GENERATE =====
 function generate() {
   if (S.format === 'single') genSE();
   else genDE();
 }
 
-// ============================================================
-// SINGLE ELIMINATION
-// ============================================================
 function genSE() {
   const n = S.size;
 
-  // Особая схема для 6 команд (по бумажной сетке)
   if (n === 6) {
-    // Раунд 1: Команда1 vs Команда2, Команда3 vs Команда4
     const m1 = mkM('W', 1, 1, tN(0), tN(1));
     const m2 = mkM('W', 1, 2, tN(2), tN(3));
-    // Полуфинал: Победитель(1) vs Команда5, Победитель(2) vs Команда6
     const m3 = mkM('W', 2, 1, null, tN(4));
     const m4 = mkM('W', 2, 2, null, tN(5));
     link(m1, m3, 1, false);
     link(m2, m4, 1, false);
-    // Финал: Победитель(3) vs Победитель(4)
     const m5 = mkM('W', 3, 1, null, null);
     link(m3, m5, 1, false);
     link(m4, m5, 2, false);
-    // За 3 место: Проигравший(3) vs Проигравший(4)
     const tp = mkM('3P', 1, 1, null, null);
     link(m3, tp, 1, true);
     link(m4, tp, 2, true);
     return;
   }
-    // Особая схема для 10 команд
   if (n === 10) {
-    // R1 (1/8): К3-К10, К4-К9, К5-К8, К6-К7
     const m1 = mkM('W', 1, 1, tN(2), tN(9));
     const m2 = mkM('W', 1, 2, tN(3), tN(8));
     const m3 = mkM('W', 1, 3, tN(4), tN(7));
     const m4 = mkM('W', 1, 4, tN(5), tN(6));
-    // R2 (1/4): К1-Поб(М1), К2-Поб(М2)
     const m5 = mkM('W', 2, 1, tN(0), null);
     const m6 = mkM('W', 2, 2, tN(1), null);
     link(m1, m5, 2, false);
     link(m2, m6, 2, false);
-    // R3 (полуфинал): Поб(М5)-Поб(М6), Поб(М3)-Поб(М4)
     const m7 = mkM('W', 3, 1, null, null);
     const m8 = mkM('W', 3, 2, null, null);
     link(m5, m7, 1, false);
     link(m6, m7, 2, false);
     link(m3, m8, 1, false);
     link(m4, m8, 2, false);
-    // Финал
     const m9 = mkM('W', 4, 1, null, null);
     link(m7, m9, 1, false);
     link(m8, m9, 2, false);
-    // За 3 место
     const tp = mkM('3P', 1, 1, null, null);
     link(m7, tp, 1, true);
     link(m8, tp, 2, true);
     return;
   }
-    // Особая схема для 12 команд
   if (n === 12) {
-    // R1 (1/8): К5-К12, К6-К11, К7-К10, К8-К9
     const m1 = mkM('W', 1, 1, tN(4), tN(11));
     const m2 = mkM('W', 1, 2, tN(5), tN(10));
     const m3 = mkM('W', 1, 3, tN(6), tN(9));
     const m4 = mkM('W', 1, 4, tN(7), tN(8));
-    // R2 (1/4): Поб(М1)-К4, Поб(М2)-К1, Поб(М3)-К2, Поб(М4)-К3
     const m5 = mkM('W', 2, 1, null, tN(3));
     const m6 = mkM('W', 2, 2, null, tN(0));
     const m7 = mkM('W', 2, 3, null, tN(1));
@@ -853,26 +798,21 @@ function genSE() {
     link(m2, m6, 1, false);
     link(m3, m7, 1, false);
     link(m4, m8, 1, false);
-    // R3 (полуфинал)
     const m9  = mkM('W', 3, 1, null, null);
     const m10 = mkM('W', 3, 2, null, null);
     link(m5, m9,  1, false);
     link(m6, m9,  2, false);
     link(m7, m10, 1, false);
     link(m8, m10, 2, false);
-    // Финал
     const m11 = mkM('W', 4, 1, null, null);
     link(m9,  m11, 1, false);
     link(m10, m11, 2, false);
-    // За 3 место
     const tp = mkM('3P', 1, 1, null, null);
     link(m9,  tp, 1, true);
     link(m10, tp, 2, true);
     return;
   }
-  // Особая схема для 24 команд
   if (n === 24) {
-    // R1 (1/16): К9-К24, К10-К23, К11-К22, К12-К21, К13-К20, К14-К19, К15-К18, К16-К17
     const r1 = [
       mkM('W', 1, 1, tN(8),  tN(23)),
       mkM('W', 1, 2, tN(9),  tN(22)),
@@ -883,16 +823,13 @@ function genSE() {
       mkM('W', 1, 7, tN(14), tN(17)),
       mkM('W', 1, 8, tN(15), tN(16)),
     ];
-    // R2 (1/8): Поб(М1)-К8, Поб(М2)-К1, Поб(М3)-К5, Поб(М4)-К4,
-    //          Поб(М5)-К7, Поб(М6)-К3, Поб(М7)-К6, Поб(М8)-К2
-    const seedR2 = [7, 0, 4, 3, 6, 2, 5, 1]; // 0-based индексы К8,К1,К5,К4,К7,К3,К6,К2
+    const seedR2 = [7, 0, 4, 3, 6, 2, 5, 1]; 
     const r2 = [];
     for (let i = 0; i < 8; i++) {
       const m = mkM('W', 2, i+1, null, tN(seedR2[i]));
       link(r1[i], m, 1, false);
       r2.push(m);
     }
-    // R3 (1/4): пары соседних
     const r3 = [];
     for (let i = 0; i < 8; i += 2) {
       const m = mkM('W', 3, i/2+1, null, null);
@@ -900,18 +837,15 @@ function genSE() {
       link(r2[i+1], m, 2, false);
       r3.push(m);
     }
-    // R4 (1/2)
     const m21 = mkM('W', 4, 1, null, null);
     const m22 = mkM('W', 4, 2, null, null);
     link(r3[0], m21, 1, false);
     link(r3[1], m21, 2, false);
     link(r3[2], m22, 1, false);
     link(r3[3], m22, 2, false);
-    // Финал
     const fin = mkM('W', 5, 1, null, null);
     link(m21, fin, 1, false);
     link(m22, fin, 2, false);
-    // За 3 место
     const tp = mkM('3P', 1, 1, null, null);
     link(m21, tp, 1, true);
     link(m22, tp, 2, true);
@@ -919,7 +853,6 @@ function genSE() {
   }
 
 
-  // Стандартная сетка для всех остальных размеров
   const slots = seedOrder(n);
   const p = slots.length;
 
@@ -957,24 +890,21 @@ function genSE() {
 
 function genDE() {
   const n = S.size;
-    // Особая схема для 6 команд (по таблице)
   if (n === 6) {
-    // W bracket
-    const m1 = mkM('W', 1, 1, tN(2), tN(5));         // К3 vs К6
-    const m2 = mkM('W', 1, 2, tN(3), tN(4));         // К4 vs К5
-    const m3 = mkM('W', 2, 1, tN(0), null);          // К1 vs Поб(М1)
-    const m4 = mkM('W', 2, 2, tN(1), null);          // К2 vs Поб(М2)
-    const m7 = mkM('W', 3, 1, null, null);           // финал W: Поб(М3)-Поб(М4)
+    const m1 = mkM('W', 1, 1, tN(2), tN(5));      
+    const m2 = mkM('W', 1, 2, tN(3), tN(4));         
+    const m3 = mkM('W', 2, 1, tN(0), null);       
+    const m4 = mkM('W', 2, 2, tN(1), null);          
+    const m7 = mkM('W', 3, 1, null, null);           
     link(m1, m3, 2, false);
     link(m2, m4, 2, false);
     link(m3, m7, 1, false);
     link(m4, m7, 2, false);
 
-    // L bracket
-    const m5 = mkM('L', 1, 1, null, null);           // Пр(М1)-Пр(М2)
-    const m6 = mkM('L', 2, 1, null, null);           // Пр(М3)-Пр(М4)
-    const m8 = mkM('L', 3, 1, null, null);           // Пр(М7)-Поб(М6)
-    const m9 = mkM('L', 4, 1, null, null);           // Поб(М8)-Поб(М5)
+    const m5 = mkM('L', 1, 1, null, null);        
+    const m6 = mkM('L', 2, 1, null, null);          
+    const m8 = mkM('L', 3, 1, null, null);           
+    const m9 = mkM('L', 4, 1, null, null);       
     link(m1, m5, 1, true);
     link(m2, m5, 2, true);
     link(m3, m6, 1, true);
@@ -984,7 +914,6 @@ function genDE() {
     link(m8, m9, 1, false);
     link(m5, m9, 2, false);
 
-    // Grand Final
     const m10 = mkM('GF', 1, 1, null, null);
     link(m7, m10, 1, false);
     link(m9, m10, 2, false);
@@ -992,16 +921,14 @@ function genDE() {
 
     return;
   }
-    // Особая схема для 8 команд
   if (n === 8) {
-    // W bracket
-    const w1 = mkM('W', 1, 1, tN(0), tN(7));   // К1-К8
-    const w2 = mkM('W', 1, 2, tN(3), tN(4));   // К4-К5
-    const w3 = mkM('W', 1, 3, tN(1), tN(6));   // К2-К7
-    const w4 = mkM('W', 1, 4, tN(2), tN(5));   // К3-К6
-    const w5 = mkM('W', 2, 1, null, null);     // 1/2 W: W1-W2
-    const w6 = mkM('W', 2, 2, null, null);     // 1/2 W: W3-W4
-    const w7 = mkM('W', 3, 1, null, null);     // финал W
+    const w1 = mkM('W', 1, 1, tN(0), tN(7));   
+    const w2 = mkM('W', 1, 2, tN(3), tN(4));   
+    const w3 = mkM('W', 1, 3, tN(1), tN(6));   
+    const w4 = mkM('W', 1, 4, tN(2), tN(5));   
+    const w5 = mkM('W', 2, 1, null, null);    
+    const w6 = mkM('W', 2, 2, null, null);     
+    const w7 = mkM('W', 3, 1, null, null);     
     link(w1, w5, 1, false);
     link(w2, w5, 2, false);
     link(w3, w6, 1, false);
@@ -1009,13 +936,12 @@ function genDE() {
     link(w5, w7, 1, false);
     link(w6, w7, 2, false);
 
-    // L bracket
-    const l1 = mkM('L', 1, 1, null, null);   // L(W1)-L(W2)
-    const l2 = mkM('L', 1, 2, null, null);   // L(W3)-L(W4)
-    const l3 = mkM('L', 2, 1, null, null);   // L(W5) vs Поб(L1)
-    const l4 = mkM('L', 2, 2, null, null);   // L(W6) vs Поб(L2)
-    const l5 = mkM('L', 3, 1, null, null);   // 1/2 L: L3-L4
-    const l6 = mkM('L', 4, 1, null, null);   // финал L: L(W7) vs Поб(L5)
+    const l1 = mkM('L', 1, 1, null, null);   
+    const l2 = mkM('L', 1, 2, null, null);  
+    const l3 = mkM('L', 2, 1, null, null);   
+    const l4 = mkM('L', 2, 2, null, null);   
+    const l5 = mkM('L', 3, 1, null, null);  
+    const l6 = mkM('L', 4, 1, null, null);   
 
     link(w1, l1, 1, true);
     link(w2, l1, 2, true);
@@ -1027,28 +953,25 @@ function genDE() {
     link(l2, l4, 2, false);
     link(l3, l5, 1, false);
     link(l4, l5, 2, false);
-    link(w7, l6, 1, true);   // проигравший W7 в финал L
+    link(w7, l6, 1, true);   
     link(l5, l6, 2, false);
 
-    // Гранд-финал
     const gf = mkM('GF', 1, 1, null, null);
     link(w7, gf, 1, false);
     link(l6, gf, 2, false);
 
     return;
   }
-  // Особая схема для 10 команд
   if (n === 10) {
-    // W bracket
-    const w1 = mkM('W', 1, 1, tN(2), tN(9));    // К3-К10
-    const w2 = mkM('W', 1, 2, tN(3), tN(8));    // К4-К9
-    const w3 = mkM('W', 1, 3, tN(4), tN(7));    // К5-К8
-    const w4 = mkM('W', 1, 4, tN(5), tN(6));    // К6-К7
-    const w5 = mkM('W', 2, 1, tN(0), null);     // К1-Поб(W1)
-    const w6 = mkM('W', 2, 2, tN(1), null);     // К2-Поб(W2)
-    const w7 = mkM('W', 3, 1, null, null);      // полуфинал верх
-    const w8 = mkM('W', 3, 2, null, null);      // полуфинал низ
-    const w9 = mkM('W', 4, 1, null, null);      // финал W
+    const w1 = mkM('W', 1, 1, tN(2), tN(9));    
+    const w2 = mkM('W', 1, 2, tN(3), tN(8));   
+    const w3 = mkM('W', 1, 3, tN(4), tN(7));    
+    const w4 = mkM('W', 1, 4, tN(5), tN(6));    
+    const w5 = mkM('W', 2, 1, tN(0), null);     
+    const w6 = mkM('W', 2, 2, tN(1), null);     
+    const w7 = mkM('W', 3, 1, null, null);      
+    const w8 = mkM('W', 3, 2, null, null);      
+    const w9 = mkM('W', 4, 1, null, null);     
     link(w1, w5, 2, false);
     link(w2, w6, 2, false);
     link(w5, w7, 1, false);
@@ -1058,15 +981,14 @@ function genDE() {
     link(w7, w9, 1, false);
     link(w8, w9, 2, false);
 
-    // L bracket
-    const l1 = mkM('L', 1, 1, null, null);  // Пр(W1)-Пр(W2)
-    const l2 = mkM('L', 1, 2, null, null);  // Пр(W3)-Пр(W4)
-    const l3 = mkM('L', 2, 1, null, null);  // Поб(L1)-Пр(W5)
+    const l1 = mkM('L', 1, 1, null, null); 
+    const l2 = mkM('L', 1, 2, null, null);  
+    const l3 = mkM('L', 2, 1, null, null);  
     const l4 = mkM('L', 2, 2, null, null);  // Поб(L2)-Пр(W6)
     const l5 = mkM('L', 3, 1, null, null);  // Поб(L3)-Пр(W8)
     const l6 = mkM('L', 3, 2, null, null);  // Поб(L4)-Пр(W7)
-    const l7 = mkM('L', 4, 1, null, null);  // Поб(L5)-Поб(L6)
-    const l8 = mkM('L', 5, 1, null, null);  // финал L: Поб(L7)-Пр(W9)
+    const l7 = mkM('L', 4, 1, null, null);  
+    const l8 = mkM('L', 5, 1, null, null);  
 
     link(w1, l1, 1, true);
     link(w2, l1, 2, true);
