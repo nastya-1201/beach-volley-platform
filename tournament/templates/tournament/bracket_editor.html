@@ -390,7 +390,6 @@
     background: #cbd5e1;
   }
 
-  /* Score modal */
   .modal-overlay {
     display: none;
     position: fixed;
@@ -489,7 +488,6 @@
     font-weight: 400;
   }
 
-  /* Final match highlight */
   .final-match .match-slot-inner {
     border-color: var(--sand);
     box-shadow: 0 4px 20px rgba(245,200,66,0.3);
@@ -508,7 +506,6 @@
     background: #7c3aed;
   }
 
-  /* Winners/Losers section labels */
   .section-label {
     font-size: 10px;
     font-weight: 800;
@@ -530,7 +527,6 @@
   }
 </style>
 
-<!-- Score Modal -->
 <div class="modal-overlay" id="scoreModal">
   <div class="modal-box">
     <h3 id="modalTitle">Ввести результат</h3>
@@ -550,16 +546,15 @@
   </div>
 </div>
 
-<!-- Header -->
 <div class="editor-header">
   <div>
-    <h1>⚡ Редактор турнирных сеток</h1>
+    <h1>Редактор турнирных сеток</h1>
     <p>Выберите формат и количество команд, затем введите названия команд и стройте сетку</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;">
-    <button class="btn btn-secondary" onclick="printBracket()">🖨️ Печать</button>
-    <button class="btn btn-secondary" onclick="resetBracket()">🔄 Сбросить</button>
-    <a href="/admin/" class="btn btn-sand">🔑 Панель администратора</a>
+    <button class="btn btn-secondary" onclick="printBracket()">Печать</button>
+    <button class="btn btn-secondary" onclick="resetBracket()">Сбросить</button>
+    <a href="/admin/" class="btn btn-sand">Панель администратора</a>
   </div>
 </div>
 
@@ -568,8 +563,8 @@
   <div class="control-group">
     <label>Система проведения</label>
     <select id="formatSelect" onchange="onSettingsChange()">
-      <option value="single">🏆 Олимпийская система (на вылет)</option>
-      <option value="double">⚔️ До двух поражений (Double Elimination)</option>
+      <option value="single">Олимпийская система (на вылет)</option>
+      <option value="double">До двух поражений (Double Elimination)</option>
     </select>
   </div>
   <div class="control-group">
@@ -587,20 +582,17 @@
   <button class="btn btn-primary" onclick="buildBracket()">▶ Построить сетку</button>
 </div>
 
-<!-- Teams Input -->
 <div class="teams-panel" id="teamsPanel">
-  <h3>✏️ Команды <span id="teamsCount" style="color:#64748b;font-weight:400;font-size:14px;"></span></h3>
+  <h3>Команды <span id="teamsCount" style="color:#64748b;font-weight:400;font-size:14px;"></span></h3>
   <div class="teams-grid" id="teamsGrid"></div>
-  <button class="btn btn-primary" onclick="applyTeams()">✅ Применить команды к сетке</button>
+  <button class="btn btn-primary" onclick="applyTeams()">Применить команды к сетке</button>
 </div>
 
-<!-- Bracket -->
 <div class="bracket-wrapper" id="bracketWrapper">
   <div id="bracketContainer"></div>
 </div>
 
 <script>
-// ===================== STATE =====================
 let state = {
   format: 'single',
   size: 6,
@@ -609,7 +601,6 @@ let state = {
   matchCounter: 0,
 };
 
-// ===================== SETTINGS =====================
 function onSettingsChange() {
   document.getElementById('teamsPanel').classList.remove('visible');
   document.getElementById('bracketWrapper').classList.remove('visible');
@@ -622,7 +613,6 @@ function buildBracket() {
   state.matches = [];
   state.matchCounter = 0;
 
-  // Show teams panel
   const panel = document.getElementById('teamsPanel');
   panel.classList.add('visible');
   document.getElementById('teamsCount').textContent = `(${state.size} команд)`;
@@ -640,7 +630,6 @@ function buildBracket() {
     grid.appendChild(wrap);
   }
 
-  // Also immediately generate structure with empty teams
   applyTeams(true);
 }
 
@@ -655,7 +644,6 @@ function applyTeams(silent) {
   }
 }
 
-// ===================== BRACKET STRUCTURE =====================
 function newMatch(bracket, round, pos, team1, team2) {
   const id = ++state.matchCounter;
   state.matches.push({ id, bracket, round, pos, team1: team1||null, team2: team2||null, score1: null, score2: null, winner: null, loser: null, winnerNextId: null, loserNextId: null });
@@ -675,20 +663,14 @@ function generateBracketStructure() {
   }
 }
 
-// ---- SINGLE ELIMINATION ----
 function generateSingleElim() {
   const n = state.size;
-  // Seeding: top power of 2 bracket
   const pow2 = nextPow2(n);
   const byes = pow2 - n;
-  // Round 1: n - byes matches (preliminary round if n not power of 2)
-  // Simplified: standard bracket with byes
 
   const teams = [...state.teams];
-  // Seed positions
   let seeds = buildSeedOrder(pow2);
 
-  // Mark byes
   let slotTeams = seeds.map((s, i) => {
     if (s <= n) return teams[s-1];
     return '__BYE__';
@@ -699,11 +681,11 @@ function generateSingleElim() {
   console.log('seeds =', seeds);
   console.log('slotTeams =', slotTeams);
   console.log('buildSeedOrder.toString():', buildSeedOrder.toString());
-  // Build matches round by round
-  let round = 1;
-  let roundMatches = []; // match ids in current round
 
-  // First round
+  let round = 1;
+  let roundMatches = []; 
+
+
   for (let i = 0; i < slotTeams.length; i += 2) {
     const t1 = slotTeams[i];
     const t2 = slotTeams[i+1];
@@ -711,7 +693,6 @@ function generateSingleElim() {
     roundMatches.push(id);
   }
 
-  // Auto-advance byes
   roundMatches.forEach(mId => {
     const m = getMatch(mId);
     if (m.team1 === null && m.team2 !== null) { m.winner = m.team2; m.loser = null; }
@@ -721,7 +702,6 @@ function generateSingleElim() {
 
   round++;
 
-  // Subsequent rounds
   while (roundMatches.length > 1) {
     const nextRound = [];
     for (let i = 0; i < roundMatches.length; i += 2) {
@@ -731,7 +711,6 @@ function generateSingleElim() {
       const prev2 = getMatch(roundMatches[i+1]);
       if (prev1) prev1.winnerNextId = id;
       if (prev2) prev2.winnerNextId = id;
-      // Propagate bye winners
       if (prev1 && prev1.winner) m.team1 = prev1.winner;
       if (prev2 && prev2.winner) m.team2 = prev2.winner;
       if (m.team1 && !m.team2) { m.winner = m.team1; }
@@ -742,8 +721,6 @@ function generateSingleElim() {
     round++;
   }
 
-  // Third place: semi-finalists losers
-  // Find semifinal round matches
   const maxRound = Math.max(...state.matches.map(m => m.round));
   const semis = state.matches.filter(m => m.bracket === 'winners' && m.round === maxRound - 1);
   if (semis.length >= 2) {
@@ -753,7 +730,6 @@ function generateSingleElim() {
   }
 }
 
-// ---- DOUBLE ELIMINATION ----
 function generateDoubleElim() {
   const n = state.size;
   const pow2 = nextPow2(n);
@@ -764,7 +740,6 @@ function generateDoubleElim() {
   let wRound = 1;
   let wMatches = [];
 
-  // Winners bracket first round
   for (let i = 0; i < slotTeams.length; i += 2) {
     const t1 = slotTeams[i] === '__BYE__' ? null : slotTeams[i];
     const t2 = slotTeams[i+1] === '__BYE__' ? null : slotTeams[i+1];
@@ -772,7 +747,6 @@ function generateDoubleElim() {
     wMatches.push(id);
   }
 
-  // Auto-advance byes in W bracket
   wMatches.forEach(mId => {
     const m = getMatch(mId);
     if (m.team1 === null && m.team2) m.winner = m.team2;
@@ -781,7 +755,6 @@ function generateDoubleElim() {
 
   wRound++;
 
-  // Store all W rounds for loser linking
   let allWRounds = [wMatches];
 
   while (wMatches.length > 1) {
@@ -802,16 +775,11 @@ function generateDoubleElim() {
     wRound++;
   }
 
-  // Losers bracket
-  // Standard DE structure: L bracket has 2*(W_rounds-1) rounds
-  // LR1 comes from W R1 losers; LR2 from LR1 winners + W R2 losers; etc.
   let lRound = 1;
   let lMatches = [];
   let prevLosers = [];
 
-  // LR1: losers from W round 1, paired together
   const wR1 = allWRounds[0];
-  // Drop-down from W R1
   for (let i = 0; i < wR1.length; i += 2) {
     const id = newMatch('losers', lRound, i/2+1, null, null);
     const m = getMatch(id);
@@ -822,19 +790,15 @@ function generateDoubleElim() {
     lMatches.push(id);
   }
 
-  // If odd number of W R1 losers, handle
   if (wR1.length === 1) {
     lMatches = [];
   }
 
   lRound++;
 
-  // LR2...: winners of prev L round face losers from next W round
   for (let wi = 1; wi < allWRounds.length - 1; wi++) {
-    // Major round: prev L winners vs W dropdowns
     const wDrops = allWRounds[wi];
     const dropRound = [];
-    // Pair lMatches winners with wDrop losers
     const count = Math.max(lMatches.length, wDrops.length);
     for (let i = 0; i < count; i++) {
       const id = newMatch('losers', lRound, i+1, null, null);
@@ -846,7 +810,6 @@ function generateDoubleElim() {
     }
     lRound++;
 
-    // Minor round: pair dropRound winners
     const minorRound = [];
     for (let i = 0; i < dropRound.length; i += 2) {
       if (dropRound[i+1] !== undefined) {
@@ -855,14 +818,13 @@ function generateDoubleElim() {
         getMatch(dropRound[i+1]).winnerNextId = id;
         minorRound.push(id);
       } else {
-        minorRound.push(dropRound[i]); // bye through
+        minorRound.push(dropRound[i]); 
       }
     }
     lRound++;
     lMatches = minorRound.length > 0 ? minorRound : dropRound;
   }
 
-  // Losers final (if there are losers matches)
   if (lMatches.length > 1) {
     const lfId = newMatch('losers', lRound, 1, null, null);
     lMatches.forEach(mId => {
@@ -873,7 +835,6 @@ function generateDoubleElim() {
     lRound++;
   }
 
-  // Grand Final: W bracket winner vs L bracket winner
   const wFinalId = wMatches[0];
   const lFinalId = lMatches[0];
   const gfId = newMatch('final', 1, 1, null, null);
@@ -881,7 +842,6 @@ function generateDoubleElim() {
   if (lFinalId) getMatch(lFinalId).winnerNextId = gfId;
 }
 
-// ---- HELPERS ----
 function nextPow2(n) {
   let p = 1;
   while (p < n) p *= 2;
@@ -889,8 +849,6 @@ function nextPow2(n) {
 }
 
 function buildSeedOrder(size) {
-  // Стандартная расстановка: 1 vs N, 2 vs N-1 и т.д.,
-  // с правильным распределением посевных по сторонам сетки
   if (size < 2) return [1];
   let seeds = [1, 2];
   while (seeds.length < size) {
@@ -906,12 +864,10 @@ function buildSeedOrder(size) {
 }
 
 
-// ===================== RENDER =====================
 function renderBracket() {
   const container = document.getElementById('bracketContainer');
   container.innerHTML = '';
 
-  // Group matches by bracket and round
   const brackets = {};
   for (const m of state.matches) {
     if (!brackets[m.bracket]) brackets[m.bracket] = {};
@@ -920,8 +876,8 @@ function renderBracket() {
   }
 
   const bracketOrder = state.format === 'single'
-    ? [['winners', '🏆 Основная сетка', 'winners'], ['third_place', '🥉 Матч за 3 место', 'losers']]
-    : [['winners', '🏅 Сетка победителей', 'winners'], ['losers', '⚔️ Сетка проигравших', 'losers'], ['final', '🏆 Гранд-финал', 'grand']];
+    ? [['winners', 'Основная сетка', 'winners'], ['third_place', 'Матч за 3 место', 'losers']]
+    : [['winners', 'Сетка победителей', 'winners'], ['losers', 'Сетка проигравших', 'losers'], ['final', 'Гранд-финал', 'grand']];
 
   for (const [key, label, cls] of bracketOrder) {
     if (!brackets[key]) continue;
@@ -996,9 +952,7 @@ function renderMatch(m, bracket) {
   const inner = document.createElement('div');
   inner.className = 'match-slot-inner';
 
-  // Team 1
   inner.appendChild(renderTeamSlot(m, 1));
-  // Team 2
   inner.appendChild(renderTeamSlot(m, 2));
 
   inner.addEventListener('click', () => openScoreModal(m.id));
@@ -1030,7 +984,6 @@ function renderTeamSlot(m, side) {
   return div;
 }
 
-// ===================== SCORE MODAL =====================
 let activeMatchId = null;
 
 function openScoreModal(matchId) {
@@ -1073,7 +1026,6 @@ function saveScore() {
     m.loser = null;
   }
 
-  // Propagate winner
   if (m.winner && m.winnerNextId) {
     const next = getMatch(m.winnerNextId);
     if (next) {
@@ -1085,7 +1037,6 @@ function saveScore() {
     }
   }
 
-  // Propagate loser (for double elim)
   if (m.loser && m.loserNextId) {
     const next = getMatch(m.loserNextId);
     if (next) {
@@ -1100,16 +1051,13 @@ function saveScore() {
   renderBracket();
 }
 
-// Close modal on overlay click
 document.getElementById('scoreModal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
-// Enter key in score inputs
 document.getElementById('modalScore1').addEventListener('keydown', e => { if(e.key==='Enter') saveScore(); });
 document.getElementById('modalScore2').addEventListener('keydown', e => { if(e.key==='Enter') saveScore(); });
 
-// ===================== UTILS =====================
 function resetBracket() {
   if (!confirm('Сбросить всю сетку? Все результаты будут удалены.')) return;
   buildBracket();
@@ -1119,7 +1067,6 @@ function printBracket() {
   window.print();
 }
 
-// Initial build on page load
 buildBracket();
 </script>
 {% endblock %}
